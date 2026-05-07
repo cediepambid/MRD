@@ -1,69 +1,107 @@
 <?php
-require_once 'cors.php';
-require_once 'config.php';
+// ============================================================
+// MRD – Auth API
+// Handles: debug, login, logout, me, profile
+// ============================================================
+require_once __DIR__ . '/config.php';
 
+// ============================================================
+// CORS — uses FRONTEND_URL env var set on Render.
+// Falls back to localhost for local XAMPP development.
+// ============================================================
+$frontendUrl  = getenv('FRONTEND_URL') ?: 'http://localhost:5174';
+$origin       = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+$localOrigins = [
+    'http://localhost:5174',
+    'http://localhost',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1',
+];
+
+$originAllowed = in_array($origin, $localOrigins, true) || $origin === $frontendUrl;
+
+if ($originAllowed && $origin !== '') {
+    header('Access-Control-Allow-Origin: ' . $origin);
+} else {
+    header('Access-Control-Allow-Origin: *');
+}
+
+header('Access-Control-Allow-Credentials: false');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-Session-Token, Authorization');
+header('Content-Type: application/json; charset=utf-8');
+
+// Handle CORS preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
+// ============================================================
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
 // ============================================================
-// GET /api/auth.php?action=debug
-// Deployment probe — confirms the current file version is live.
-// Remove this route once login is confirmed working.
+// GET /auth.php?action=debug
+// Deployment probe — verifies this exact file version is live.
 // ============================================================
 if ($action === 'debug') {
     jsonResponse([
-        'success' => true,
-        'marker'  => 'AUTH_DEBUG_2026_05_07',
-        'file'    => __FILE__,
-        'php'     => PHP_VERSION,
-        'db_host' => getenv('DB_HOST') ?: 'localhost (fallback)',
+        'success'  => true,
+        'marker'   => 'AUTH_DEBUG_FIXED',
+        'file'     => __FILE__,
+        'php'      => PHP_VERSION,
+        'db_host'  => DB_HOST,
+        'db_port'  => DB_PORT,
+        'db_name'  => DB_NAME,
+        'frontend' => $frontendUrl,
     ]);
 }
 
 // ============================================================
-// POST /api/auth.php?action=login
+// POST /auth.php?action=login
 // ============================================================
 if ($method === 'POST' && $action === 'login') {
-    // Inline helper so this block can never return plain text.
-    $loginJson = function(array $payload, int $code = 200): never {
-        http_response_code($code);
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        exit;
-    };
-
     try {
         $raw  = (string) file_get_contents('php://input');
         $body = json_decode($raw, true);
         if (!is_array($body)) $body = [];
 
-        $email    = trim($body['email']    ?? '');
-        $password = trim($body['password'] ?? '');
+        $email    = trim((string)($body['email']    ?? ''));
+        $password = trim((string)($body['password'] ?? ''));
 
         if ($email === '' || $password === '') {
-            $loginJson(['success' => false, 'message' => 'Email and password are required.'], 400);
+            jsonResponse(['success' => false, 'message' => 'Email and password are required.'], 400);
         }
 
-        $db = getDB();
-
-        // Query without is_active filter so we can give a specific inactive message.
-        $stmt = $db->prepare('SELECT id, name, email, role, password, is_active, avatar FROM users WHERE email = ? LIMIT 1');
+        $db   = getDB();
+        $stmt = $db->prepare(
+            'SELECT id, name, email, role, password, is_active, avatar
+             FROM users
+             WHERE email = ?
+             LIMIT 1'
+        );
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
-            $loginJson(['success' => false, 'message' => 'Invalid email or password.'], 401);
+            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
         }
 
         if (!(int)$user['is_active']) {
-            $loginJson(['success' => false, 'message' => 'Account is inactive. Please contact the administrator.'], 403);
+            jsonResponse(['success' => false, 'message' => 'Account is inactive. Please contact the administrator.'], 403);
         }
 
-        if (!password_verify($password, $user['password'])) {
-            $loginJson(['success' => false, 'message' => 'Invalid email or password.'], 401);
+        if (!password_verify($password, (string)$user['password'])) {
+            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
         }
 
-        // Cookie-free session — token sent via X-Session-Token header.
+        if ((string)$user['role'] !== 'admin') {
+            jsonResponse(['success' => false, 'message' => 'Access denied.'], 403);
+        }
+
+        // Start cookie-free session; token is returned to the client.
         ini_set('session.use_cookies',      '0');
         ini_set('session.use_only_cookies', '0');
         session_name('mrd_admin');
@@ -76,42 +114,44 @@ if ($method === 'POST' && $action === 'login') {
         $token = session_id();
         session_write_close();
 
-        // Best-effort last-login update — don't let it break the response.
+        // Best-effort: update last_login without breaking the response on failure.
         try {
             $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')
                ->execute([(int)$user['id']]);
         } catch (Throwable $_) {}
 
-        $loginJson([
+        jsonResponse([
             'success'       => true,
             'message'       => 'Login successful.',
             'session_token' => $token,
-            'user' => [
-                'id'    => (int)$user['id'],
-                'name'  => (string)$user['name'],
-                'email' => (string)$user['email'],
-                'role'  => (string)$user['role'],
-                'avatar'=> $user['avatar'] ?? null,
+            'user'          => [
+                'id'     => (int)$user['id'],
+                'name'   => (string)$user['name'],
+                'email'  => (string)$user['email'],
+                'role'   => (string)$user['role'],
+                'avatar' => $user['avatar'] ?? null,
             ],
         ]);
 
     } catch (Throwable $e) {
-        $loginJson(['success' => false, 'message' => 'Login failed. Please try again later.'], 500);
+        jsonResponse(['success' => false, 'message' => 'Login failed. Please try again later.'], 500);
     }
 }
 
 // ============================================================
-// POST /api/auth.php?action=logout
+// POST /auth.php?action=logout
 // ============================================================
 if ($method === 'POST' && $action === 'logout') {
-    startMrdSession();
-    session_unset();
-    session_destroy();
-    jsonResponse(['success' => true]);
+    try {
+        startMrdSession();
+        session_unset();
+        session_destroy();
+    } catch (Throwable $_) {}
+    jsonResponse(['success' => true, 'message' => 'Logged out.']);
 }
 
 // ============================================================
-// GET /api/auth.php?action=me
+// GET /auth.php?action=me
 // ============================================================
 if ($method === 'GET' && $action === 'me') {
     startMrdSession();
@@ -119,13 +159,22 @@ if ($method === 'GET' && $action === 'me') {
         session_write_close();
         jsonResponse(['authenticated' => false], 401);
     }
-    $uid = $_SESSION['user_id'];
+    $uid = (int)$_SESSION['user_id'];
     session_write_close();
 
-    $db   = getDB();
-    $stmt = $db->prepare('SELECT id, name, email, role, avatar FROM users WHERE id = ? AND is_active = 1');
-    $stmt->execute([$uid]);
-    $user = $stmt->fetch();
+    try {
+        $db   = getDB();
+        $stmt = $db->prepare(
+            'SELECT id, name, email, role, avatar
+             FROM users
+             WHERE id = ? AND is_active = 1
+             LIMIT 1'
+        );
+        $stmt->execute([$uid]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Throwable $_) {
+        jsonResponse(['authenticated' => false], 500);
+    }
 
     if (!$user) {
         jsonResponse(['authenticated' => false], 401);
@@ -135,33 +184,35 @@ if ($method === 'GET' && $action === 'me') {
 }
 
 // ============================================================
-// PUT /api/auth.php?action=profile
+// PUT /auth.php?action=profile
 // ============================================================
 if ($method === 'PUT' && $action === 'profile') {
     $auth = authGuard();
-    $body = json_decode(file_get_contents('php://input'), true) ?? [];
+    $body = json_decode((string)file_get_contents('php://input'), true) ?? [];
 
-    $name  = sanitize($body['name']  ?? '');
-    $email = sanitize($body['email'] ?? '');
+    $name  = sanitize((string)($body['name']  ?? ''));
+    $email = sanitize((string)($body['email'] ?? ''));
 
-    if (!$name || !$email) {
+    if ($name === '' || $email === '') {
         jsonResponse(['error' => 'Name and email are required.'], 400);
     }
 
     $db = getDB();
     $db->prepare('UPDATE users SET name = ?, email = ? WHERE id = ?')
-       ->execute([$name, $email, $auth['id']]);
+       ->execute([$name, $email, (int)$auth['id']]);
 
     if (!empty($body['password'])) {
-        if (strlen($body['password']) < 8) {
+        if (strlen((string)$body['password']) < 8) {
             jsonResponse(['error' => 'Password must be at least 8 characters.'], 400);
         }
-        $hashed = password_hash($body['password'], PASSWORD_DEFAULT);
         $db->prepare('UPDATE users SET password = ? WHERE id = ?')
-           ->execute([$hashed, $auth['id']]);
+           ->execute([password_hash((string)$body['password'], PASSWORD_DEFAULT), (int)$auth['id']]);
     }
 
     jsonResponse(['success' => true, 'message' => 'Profile updated successfully.']);
 }
 
+// ============================================================
+// Catch-all — no matching action/method
+// ============================================================
 jsonResponse(['error' => 'Invalid request.'], 400);
