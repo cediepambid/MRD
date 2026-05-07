@@ -4,10 +4,17 @@
 // Database Configuration & Helpers
 // ============================================================
 
-define('DB_HOST',    'localhost');
-define('DB_NAME',    'mrd_db');
-define('DB_USER',    'root');
-define('DB_PASS',    '');
+// Never print PHP errors into the response body — they corrupt JSON.
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+error_reporting(E_ALL);         // still log everything, just don't echo it
+
+// Read DB credentials from Render environment variables first,
+// fall back to local XAMPP defaults so dev still works without any .env.
+define('DB_HOST',    getenv('DB_HOST') ?: 'localhost');
+define('DB_NAME',    getenv('DB_NAME') ?: 'mrd_db');
+define('DB_USER',    getenv('DB_USER') ?: 'root');
+define('DB_PASS',    getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 define('APP_URL',        'http://localhost/MRD');
@@ -32,8 +39,12 @@ function getDB(): PDO {
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $opts);
         } catch (PDOException $e) {
+            // jsonResponse is defined below; call it directly to guarantee
+            // clean output and correct Content-Type header.
+            while (ob_get_level() > 0) ob_end_clean();
             http_response_code(500);
-            echo json_encode(['error' => 'Database connection failed.']);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'error' => 'Database connection failed.']);
             exit;
         }
     }
@@ -44,7 +55,12 @@ function getDB(): PDO {
 // JSON response helper
 // ============================================================
 function jsonResponse(mixed $data, int $code = 200): never {
+    // Discard any accidental output (PHP warnings, BOM, whitespace)
+    // that would corrupt the JSON body.
+    while (ob_get_level() > 0) ob_end_clean();
+
     http_response_code($code);
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }

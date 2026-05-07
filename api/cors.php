@@ -1,4 +1,8 @@
 <?php
+// Start output buffering immediately so any stray PHP warning/notice
+// cannot corrupt the JSON response body (cleared in jsonResponse()).
+ob_start();
+
 // ============================================================
 // CORS – allows localhost AND any LAN (192.168.x.x / 10.x.x.x)
 // Safe: auth uses X-Session-Token header, not cookies

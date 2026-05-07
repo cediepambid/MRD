@@ -9,49 +9,67 @@ $action = $_GET['action'] ?? '';
 // POST /api/auth.php?action=login
 // ============================================================
 if ($method === 'POST' && $action === 'login') {
-    $body     = json_decode(file_get_contents('php://input'), true) ?? [];
-    $email    = trim($body['email']    ?? '');
-    $password = trim($body['password'] ?? '');
+    try {
+        $raw      = file_get_contents('php://input');
+        $body     = json_decode($raw, true) ?? [];
+        $email    = trim($body['email']    ?? '');
+        $password = trim($body['password'] ?? '');
 
-    if (!$email || !$password) {
-        jsonResponse(['success' => false, 'message' => 'Email and password are required.'], 400);
+        if (!$email || !$password) {
+            jsonResponse(['success' => false, 'message' => 'Email and password are required.'], 400);
+        }
+
+        $db = getDB();
+
+        // Look up by email only first so we can give a specific "inactive" message.
+        $stmt = $db->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
+        }
+
+        if (!$user['is_active']) {
+            jsonResponse(['success' => false, 'message' => 'Account is inactive. Please contact the administrator.'], 403);
+        }
+
+        if (!password_verify($password, $user['password'])) {
+            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
+        }
+
+        // Start cookie-free session and store user identity.
+        ini_set('session.use_cookies',      '0');
+        ini_set('session.use_only_cookies', '0');
+        session_name('mrd_admin');
+        session_start();
+
+        $_SESSION['user_id']   = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_role'] = $user['role'];
+
+        $token = session_id();
+        session_write_close();
+
+        // Update last login timestamp.
+        $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
+
+        jsonResponse([
+            'success'       => true,
+            'message'       => 'Login successful.',
+            'session_token' => $token,
+            'user' => [
+                'id'    => (int)$user['id'],
+                'name'  => $user['name'],
+                'email' => $user['email'],
+                'role'  => $user['role'],
+                'avatar'=> $user['avatar'] ?? null,
+            ],
+        ]);
+
+    } catch (Throwable $e) {
+        jsonResponse(['success' => false, 'message' => 'Login failed. Please try again.'], 500);
     }
-
-    $db   = getDB();
-    $stmt = $db->prepare('SELECT * FROM users WHERE email = ? AND is_active = 1 LIMIT 1');
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
-
-    if (!$user || !password_verify($password, $user['password'])) {
-        jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
-    }
-
-    ini_set('session.use_cookies',      '0');
-    ini_set('session.use_only_cookies', '0');
-    session_name('mrd_admin');
-    session_start();
-
-    $_SESSION['user_id']   = $user['id'];
-    $_SESSION['user_name'] = $user['name'];
-    $_SESSION['user_role'] = $user['role'];
-
-    $token = session_id();
-    session_write_close();
-
-    // Update last login
-    $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
-
-    jsonResponse([
-        'success'       => true,
-        'session_token' => $token,
-        'user' => [
-            'id'    => $user['id'],
-            'name'  => $user['name'],
-            'email' => $user['email'],
-            'role'  => $user['role'],
-            'avatar'=> $user['avatar'],
-        ],
-    ]);
 }
 
 // ============================================================
