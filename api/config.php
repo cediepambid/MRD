@@ -39,9 +39,6 @@ function getDB(): PDO {
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $opts);
         } catch (PDOException $e) {
-            // jsonResponse is defined below; call it directly to guarantee
-            // clean output and correct Content-Type header.
-            while (ob_get_level() > 0) ob_end_clean();
             http_response_code(500);
             header('Content-Type: application/json; charset=utf-8');
             echo json_encode(['success' => false, 'error' => 'Database connection failed.']);
@@ -55,10 +52,6 @@ function getDB(): PDO {
 // JSON response helper
 // ============================================================
 function jsonResponse(mixed $data, int $code = 200): never {
-    // Discard any accidental output (PHP warnings, BOM, whitespace)
-    // that would corrupt the JSON body.
-    while (ob_get_level() > 0) ob_end_clean();
-
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
