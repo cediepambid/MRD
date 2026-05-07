@@ -39,9 +39,9 @@ const NAV = [
 const SETTINGS_ITEMS = [
   { to: '/admin/reports',       icon: BarChart2, label: 'Reports' },
   { to: '/admin/qr-code',       icon: QrCode,    label: 'QR Code' },
-  { to: '/admin/users',         icon: UserCog,   label: 'Users',         roles: ['superadmin'] },
-  { to: '/admin/activity-logs', icon: Activity,  label: 'Activity Logs', roles: ['superadmin','mrd_admin'] },
-  { to: '/admin/settings',      icon: Settings,  label: 'System Settings', roles: ['superadmin'] },
+  { to: '/admin/users',         icon: UserCog,   label: 'Users',           roles: ['admin'] },
+  { to: '/admin/activity-logs', icon: Activity,  label: 'Activity Logs',   roles: ['admin'] },
+  { to: '/admin/settings',      icon: Settings,  label: 'System Settings', roles: ['admin'] },
 ];
 
 // ── Polling interval (ms) for real-time notification badge ─────────

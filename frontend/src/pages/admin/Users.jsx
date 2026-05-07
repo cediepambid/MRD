@@ -4,14 +4,10 @@ import toast from 'react-hot-toast';
 import api from '../../api';
 
 const ROLES = [
-  { value: 'superadmin',        label: 'Super Admin' },
-  { value: 'mrd_admin',         label: 'MRD Admin' },
-  { value: 'verifier',          label: 'Verifier' },
-  { value: 'releasing_officer', label: 'Releasing Officer' },
-  { value: 'viewer',            label: 'Viewer (Reports Only)' },
+  { value: 'admin', label: 'Admin' },
 ];
 
-const initForm = { name: '', email: '', password: '', role: 'mrd_admin', is_active: 1 };
+const initForm = { name: '', email: '', password: '', role: 'admin', is_active: 1 };
 
 export default function Users() {
   const [users, setUsers]   = useState([]);
