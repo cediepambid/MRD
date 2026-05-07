@@ -6,39 +6,64 @@ $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
 // ============================================================
+// GET /api/auth.php?action=debug
+// Deployment probe — confirms the current file version is live.
+// Remove this route once login is confirmed working.
+// ============================================================
+if ($action === 'debug') {
+    jsonResponse([
+        'success' => true,
+        'marker'  => 'AUTH_DEBUG_2026_05_07',
+        'file'    => __FILE__,
+        'php'     => PHP_VERSION,
+        'db_host' => getenv('DB_HOST') ?: 'localhost (fallback)',
+    ]);
+}
+
+// ============================================================
 // POST /api/auth.php?action=login
 // ============================================================
 if ($method === 'POST' && $action === 'login') {
+    // Inline helper so this block can never return plain text.
+    $loginJson = function(array $payload, int $code = 200): never {
+        http_response_code($code);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    };
+
     try {
-        $raw      = file_get_contents('php://input');
-        $body     = json_decode($raw, true) ?? [];
+        $raw  = (string) file_get_contents('php://input');
+        $body = json_decode($raw, true);
+        if (!is_array($body)) $body = [];
+
         $email    = trim($body['email']    ?? '');
         $password = trim($body['password'] ?? '');
 
-        if (!$email || !$password) {
-            jsonResponse(['success' => false, 'message' => 'Email and password are required.'], 400);
+        if ($email === '' || $password === '') {
+            $loginJson(['success' => false, 'message' => 'Email and password are required.'], 400);
         }
 
         $db = getDB();
 
-        // Look up by email only first so we can give a specific "inactive" message.
-        $stmt = $db->prepare('SELECT * FROM users WHERE email = ? LIMIT 1');
+        // Query without is_active filter so we can give a specific inactive message.
+        $stmt = $db->prepare('SELECT id, name, email, role, password, is_active, avatar FROM users WHERE email = ? LIMIT 1');
         $stmt->execute([$email]);
-        $user = $stmt->fetch();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
-            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
+            $loginJson(['success' => false, 'message' => 'Invalid email or password.'], 401);
         }
 
-        if (!$user['is_active']) {
-            jsonResponse(['success' => false, 'message' => 'Account is inactive. Please contact the administrator.'], 403);
+        if (!(int)$user['is_active']) {
+            $loginJson(['success' => false, 'message' => 'Account is inactive. Please contact the administrator.'], 403);
         }
 
         if (!password_verify($password, $user['password'])) {
-            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
+            $loginJson(['success' => false, 'message' => 'Invalid email or password.'], 401);
         }
 
-        // Start cookie-free session and store user identity.
+        // Cookie-free session — token sent via X-Session-Token header.
         ini_set('session.use_cookies',      '0');
         ini_set('session.use_only_cookies', '0');
         session_name('mrd_admin');
@@ -51,24 +76,27 @@ if ($method === 'POST' && $action === 'login') {
         $token = session_id();
         session_write_close();
 
-        // Update last login timestamp.
-        $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')->execute([$user['id']]);
+        // Best-effort last-login update — don't let it break the response.
+        try {
+            $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')
+               ->execute([(int)$user['id']]);
+        } catch (Throwable $_) {}
 
-        jsonResponse([
+        $loginJson([
             'success'       => true,
             'message'       => 'Login successful.',
             'session_token' => $token,
             'user' => [
                 'id'    => (int)$user['id'],
-                'name'  => $user['name'],
-                'email' => $user['email'],
-                'role'  => $user['role'],
+                'name'  => (string)$user['name'],
+                'email' => (string)$user['email'],
+                'role'  => (string)$user['role'],
                 'avatar'=> $user['avatar'] ?? null,
             ],
         ]);
 
     } catch (Throwable $e) {
-        jsonResponse(['success' => false, 'message' => 'Login failed. Please try again.'], 500);
+        $loginJson(['success' => false, 'message' => 'Login failed. Please try again later.'], 500);
     }
 }
 
