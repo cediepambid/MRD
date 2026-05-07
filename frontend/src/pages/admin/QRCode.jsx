@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { QrCode, Download, Printer, Copy, RefreshCw, CheckCircle } from 'lucide-react';
+import { QrCode, Download, Printer, Copy, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api';
 
 export default function QRCodePage() {
-  const [qr, setQr]         = useState(null);
-  const [regUrl, setRegUrl] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [qr, setQr]               = useState(null);
+  const [regUrl, setRegUrl]       = useState('');
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied]       = useState(false);
 
   const fetchQR = () => {
     setLoading(true);
+    setError(false);
     api.get('/qr_codes.php?action=current')
       .then(res => {
         setQr(res.data.qr);
         setRegUrl(res.data.reg_url || '');
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   };
 
@@ -86,6 +88,21 @@ export default function QRCodePage() {
 
           {loading ? (
             <div style={{ padding: 60 }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
+          ) : error ? (
+            <div style={{ padding: '40px 20px' }}>
+              <div style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
+                color: 'var(--text-muted)',
+              }}>
+                <AlertCircle size={40} color="#C0392B" />
+                <p style={{ fontSize: '0.9rem', color: '#C0392B', textAlign: 'center' }}>
+                  Could not load QR Code. Backend may still be starting up.
+                </p>
+                <button className="btn btn-outline btn-sm" onClick={fetchQR}>
+                  <RefreshCw size={14} /> Retry
+                </button>
+              </div>
+            </div>
           ) : regUrl ? (
             <>
               <div style={{

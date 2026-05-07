@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, Clock, Users, Package,
@@ -54,24 +54,28 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [badges, setBadges]             = useState({ pending: 0, notif: 0 });
-  const settingsRef = useRef(null);
+  const settingsRef  = useRef(null);
+  const fetchingRef  = useRef(false); // guard: skip poll if previous one is still in-flight
 
   // ── Fetch badge counts (pending apps + unread notifications) ──────
-  const fetchBadges = () => {
+  const fetchBadges = useCallback(() => {
+    if (fetchingRef.current) return; // skip if a request is already pending
+    fetchingRef.current = true;
     api.get('/dashboard.php')
       .then(res => setBadges({
-        pending: res.data.summary?.pending             || 0,
-        notif:   res.data.unread_notifications         || 0,
+        pending: res.data.summary?.pending     || 0,
+        notif:   res.data.unread_notifications || 0,
       }))
-      .catch(() => {});
-  };
+      .catch(() => {})
+      .finally(() => { fetchingRef.current = false; });
+  }, []);
 
   // Run once on mount: fetch immediately, then poll every 30 s.
   useEffect(() => {
     fetchBadges();
     const timer = setInterval(fetchBadges, POLL_MS);
     return () => clearInterval(timer);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchBadges]);
 
   // Close settings dropdown when clicking outside
   useEffect(() => {
