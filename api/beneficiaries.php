@@ -87,7 +87,7 @@ if ($method === 'GET' && $action === 'list') {
 // Mark a beneficiary as claimed
 // ============================================================
 if ($method === 'POST' && $action === 'mark_claimed') {
-    $auth = roleGuard(['superadmin','mrd_admin','releasing_officer']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -126,7 +126,7 @@ if ($method === 'POST' && $action === 'mark_claimed') {
 // Reverse a claim (admin correction)
 // ============================================================
 if ($method === 'POST' && $action === 'mark_unclaimed') {
-    $auth = roleGuard(['superadmin','mrd_admin']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
 
     if (!$id) jsonResponse(['error' => 'Beneficiary ID required.'], 400);

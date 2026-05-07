@@ -21,7 +21,7 @@ if ($method === 'GET' && $action === 'current') {
 
 // POST generate new QR
 if ($method === 'POST' && $action === 'generate') {
-    $auth = roleGuard(['superadmin','mrd_admin']);
+    $auth = roleGuard(['admin']);
     $db   = getDB();
 
     $settingStmt = $db->prepare("SELECT value FROM settings WHERE `key` = 'reg_url'");
@@ -42,7 +42,7 @@ if ($method === 'POST' && $action === 'generate') {
 
 // POST toggle active
 if ($method === 'POST' && $action === 'toggle') {
-    $auth = roleGuard(['superadmin','mrd_admin']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
     if (!$id) jsonResponse(['error' => 'QR Code ID required.'], 400);

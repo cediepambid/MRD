@@ -7,7 +7,7 @@ $action = $_GET['action'] ?? '';
 
 // GET list
 if ($method === 'GET' && $action === 'list') {
-    $auth = roleGuard(['superadmin']);
+    $auth = roleGuard(['admin']);
     $db   = getDB();
 
     $users = $db->query("SELECT id, name, email, role, is_active, last_login, created_at FROM users ORDER BY created_at DESC")->fetchAll();
@@ -16,15 +16,15 @@ if ($method === 'GET' && $action === 'list') {
 
 // POST create user
 if ($method === 'POST' && $action === 'create') {
-    $auth = roleGuard(['superadmin']);
+    $auth = roleGuard(['admin']);
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
     $name     = sanitize($body['name']  ?? '');
     $email    = sanitize($body['email'] ?? '');
     $password = $body['password'] ?? '';
-    $role     = $body['role']     ?? 'mrd_admin';
+    $role     = $body['role']     ?? 'admin';
 
-    $validRoles = ['superadmin','mrd_admin','verifier','releasing_officer','viewer'];
+    $validRoles = ['admin'];
     if (!$name || !$email || !$password) {
         jsonResponse(['error' => 'Name, email, and password are required.'], 400);
     }
@@ -52,7 +52,7 @@ if ($method === 'POST' && $action === 'create') {
 
 // PUT update user
 if ($method === 'PUT' && $action === 'update') {
-    $auth = roleGuard(['superadmin']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -80,7 +80,7 @@ if ($method === 'PUT' && $action === 'update') {
 
 // DELETE user
 if ($method === 'DELETE') {
-    $auth = roleGuard(['superadmin']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
     if (!$id) jsonResponse(['error' => 'User ID required.'], 400);
     if ($id === $auth['id']) jsonResponse(['error' => 'Cannot delete your own account.'], 400);

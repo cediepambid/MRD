@@ -18,7 +18,7 @@ if ($method === 'GET') {
 
 // PUT update settings
 if ($method === 'PUT') {
-    $auth = roleGuard(['superadmin']);
+    $auth = roleGuard(['admin']);
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
     $db   = getDB();
 

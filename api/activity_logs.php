@@ -6,7 +6,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method !== 'GET') jsonResponse(['error' => 'Method not allowed.'], 405);
 
-$auth = roleGuard(['superadmin','mrd_admin']);
+$auth = roleGuard(['admin']);
 $db   = getDB();
 
 $page  = max(1, (int)($_GET['page'] ?? 1));

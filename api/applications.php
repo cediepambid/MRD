@@ -98,7 +98,7 @@ if ($method === 'POST' && $action === 'submit') {
     $appId = $db->lastInsertId();
 
     // Notify all admins
-    $admins = $db->query("SELECT id FROM users WHERE role IN ('superadmin','mrd_admin') AND is_active = 1")->fetchAll();
+    $admins = $db->query("SELECT id FROM users WHERE role IN ('admin') AND is_active = 1")->fetchAll();
     foreach ($admins as $adm) {
         createNotification(
             $db, $adm['id'], 'new_application',
@@ -203,7 +203,7 @@ if ($method === 'POST' && $action === 'resubmit') {
        ->execute([$app['id']]);
 
     // Notify admins
-    $admins = $db->query("SELECT id FROM users WHERE role IN ('superadmin','mrd_admin','verifier') AND is_active = 1")->fetchAll();
+    $admins = $db->query("SELECT id FROM users WHERE role IN ('admin') AND is_active = 1")->fetchAll();
     foreach ($admins as $adm) {
         createNotification(
             $db, $adm['id'], 'resubmission',
@@ -333,7 +333,7 @@ if ($method === 'GET' && $action === 'detail') {
 // ADMIN: POST /api/applications.php?action=approve&id=1
 // ============================================================
 if ($method === 'POST' && $action === 'approve') {
-    $auth = roleGuard(['superadmin','mrd_admin']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
     if (!$id) jsonResponse(['error' => 'Application ID required.'], 400);
 
@@ -369,7 +369,7 @@ if ($method === 'POST' && $action === 'approve') {
 // ADMIN: POST /api/applications.php?action=reject&id=1
 // ============================================================
 if ($method === 'POST' && $action === 'reject') {
-    $auth = roleGuard(['superadmin','mrd_admin']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -398,7 +398,7 @@ if ($method === 'POST' && $action === 'reject') {
 // ADMIN: POST /api/applications.php?action=request_resubmission&id=1
 // ============================================================
 if ($method === 'POST' && $action === 'request_resubmission') {
-    $auth = roleGuard(['superadmin','mrd_admin','verifier']);
+    $auth = roleGuard(['admin']);
     $id   = (int)($_GET['id'] ?? 0);
     $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -428,7 +428,7 @@ if ($method === 'POST' && $action === 'request_resubmission') {
 // Update attachment status (Complete/Missing/Invalid)
 // ============================================================
 if ($method === 'PUT' && $action === 'update_attachment') {
-    $auth  = roleGuard(['superadmin','mrd_admin','verifier']);
+    $auth  = roleGuard(['admin']);
     $attId = (int)($_GET['att_id'] ?? 0);
     $body  = json_decode(file_get_contents('php://input'), true) ?? [];
 
