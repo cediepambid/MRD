@@ -8,9 +8,11 @@ require_once __DIR__ . '/config.php';
 // ============================================================
 // CORS — uses FRONTEND_URL env var set on Render.
 // Falls back to localhost for local XAMPP development.
+// Requests with no Origin header (Postman, PowerShell, curl)
+// are never blocked — they receive Access-Control-Allow-Origin: *
 // ============================================================
-$frontendUrl  = getenv('FRONTEND_URL') ?: 'http://localhost:5174';
-$origin       = $_SERVER['HTTP_ORIGIN'] ?? '';
+$frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:5174';
+$origin      = $_SERVER['HTTP_ORIGIN'] ?? '';
 
 $localOrigins = [
     'http://localhost:5174',
@@ -32,9 +34,9 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Session-Token, Authorization');
 header('Content-Type: application/json; charset=utf-8');
 
-// Handle CORS preflight
+// Handle CORS preflight — return 200 immediately, no PHP logic needed
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
+    http_response_code(200);
     exit;
 }
 
@@ -61,6 +63,7 @@ if ($action === 'debug') {
 
 // ============================================================
 // POST /auth.php?action=login
+// PUBLIC — no authGuard, roleGuard, or session token required.
 // ============================================================
 if ($method === 'POST' && $action === 'login') {
     try {
@@ -72,7 +75,11 @@ if ($method === 'POST' && $action === 'login') {
         $password = trim((string)($body['password'] ?? ''));
 
         if ($email === '' || $password === '') {
-            jsonResponse(['success' => false, 'message' => 'Email and password are required.'], 400);
+            jsonResponse([
+                'success'      => false,
+                'message'      => 'Email and password are required.',
+                'debug_reason' => 'missing_credentials',
+            ], 400);
         }
 
         $db   = getDB();
@@ -85,23 +92,59 @@ if ($method === 'POST' && $action === 'login') {
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        // --- User not found ---
         if (!$user) {
-            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
+            jsonResponse([
+                'success'      => false,
+                'message'      => 'Invalid email or password.',
+                'debug_reason' => 'user_not_found',
+            ], 401);
         }
 
+        // --- Account inactive ---
+        // Returns 401 (not 403) so the response is always JSON and never
+        // confused with Apache's own 403 Forbidden page.
         if (!(int)$user['is_active']) {
-            jsonResponse(['success' => false, 'message' => 'Account is inactive. Please contact the administrator.'], 403);
+            jsonResponse([
+                'success'      => false,
+                'message'      => 'Account is inactive. Please contact the administrator.',
+                'debug_reason' => 'account_inactive',
+            ], 401);
         }
 
+        // --- Password not stored as bcrypt hash ---
+        // Catches the case where the DB still has a plain-text password.
+        if (!str_starts_with((string)$user['password'], '$2')) {
+            jsonResponse([
+                'success'      => false,
+                'message'      => 'Invalid email or password.',
+                'debug_reason' => 'password_not_bcrypt_hash',
+            ], 401);
+        }
+
+        // --- Wrong password ---
         if (!password_verify($password, (string)$user['password'])) {
-            jsonResponse(['success' => false, 'message' => 'Invalid email or password.'], 401);
+            jsonResponse([
+                'success'      => false,
+                'message'      => 'Invalid email or password.',
+                'debug_reason' => 'invalid_password',
+            ], 401);
         }
 
+        // --- Role check ---
+        // Only 'admin' accounts may log in through this portal.
+        // If this triggers, the DB row still has an old role (superadmin, mrd_admin, etc.)
+        // Run: UPDATE users SET role='admin' WHERE email='admin@mrd.gov.ph';
         if ((string)$user['role'] !== 'admin') {
-            jsonResponse(['success' => false, 'message' => 'Access denied.'], 403);
+            jsonResponse([
+                'success'      => false,
+                'message'      => 'Invalid email or password.',
+                'debug_reason' => 'role_not_admin',
+                'actual_role'  => (string)$user['role'],
+            ], 401);
         }
 
-        // Start cookie-free session; token is returned to the client.
+        // --- All checks passed — create session ---
         ini_set('session.use_cookies',      '0');
         ini_set('session.use_only_cookies', '0');
         session_name('mrd_admin');
@@ -114,7 +157,7 @@ if ($method === 'POST' && $action === 'login') {
         $token = session_id();
         session_write_close();
 
-        // Best-effort: update last_login without breaking the response on failure.
+        // Best-effort last-login update — never blocks the success response.
         try {
             $db->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')
                ->execute([(int)$user['id']]);
@@ -134,7 +177,12 @@ if ($method === 'POST' && $action === 'login') {
         ]);
 
     } catch (Throwable $e) {
-        jsonResponse(['success' => false, 'message' => 'Login failed. Please try again later.'], 500);
+        // Catch-all — never expose internal exception details in production.
+        jsonResponse([
+            'success'      => false,
+            'message'      => 'Login failed. Please try again later.',
+            'debug_reason' => 'exception_thrown',
+        ], 500);
     }
 }
 
