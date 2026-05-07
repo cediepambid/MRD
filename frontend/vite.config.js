@@ -29,7 +29,7 @@ export default defineConfig({
   },
 
   build: {
-    outDir: '../public',
+    outDir: 'dist',
     emptyOutDir: true,
 
     // Split CSS per lazy chunk so each page only loads its own styles
