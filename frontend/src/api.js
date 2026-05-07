@@ -1,7 +1,14 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
+
+// Show "backend is starting" toast at most once per minute so it never spams.
+let wakeUpToastAt = 0;
 
 const api = axios.create({
-  baseURL: '/MRD/api',
+  // In production (Render), VITE_API_BASE_URL is set in the Render dashboard.
+  // In local dev (XAMPP), falls back to the proxied path.
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/MRD/api',
+  timeout: 12000,
   withCredentials: false,
   headers: { 'Content-Type': 'application/json' },
 });
@@ -17,6 +24,21 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   res => res,
   err => {
+    const isTimeout    = err.code === 'ECONNABORTED' || err.message?.includes('timeout');
+    const isNetworkErr = !err.response;
+
+    if (isTimeout || isNetworkErr) {
+      const now = Date.now();
+      if (now - wakeUpToastAt > 60_000) {
+        wakeUpToastAt = now;
+        toast('Backend is starting. Please wait or try again.', {
+          icon: '⏳',
+          duration: 7000,
+          id: 'backend-wakeup',
+        });
+      }
+    }
+
     if (err.response?.status === 401) {
       sessionStorage.removeItem('mrd_admin_token');
       sessionStorage.removeItem('mrd_admin_user');
@@ -24,6 +46,7 @@ api.interceptors.response.use(
         window.location.hash = '#/admin/login';
       }
     }
+
     return Promise.reject(err);
   }
 );

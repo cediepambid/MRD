@@ -46,7 +46,9 @@ function ProtectedRoute({ children }) {
 
 function GuestOnlyRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  // Show login form immediately instead of a blank screen.
+  // If the user turns out to be authenticated, the Navigate below redirects them.
+  if (loading) return children;
   return user ? <Navigate to="/admin/dashboard" replace /> : children;
 }
 

@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/MRD/public/',
+  base: '/',
 
   // Drop console.* and debugger statements in production bundles
   esbuild: {
