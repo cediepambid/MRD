@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MRD – Monthly Rice Distribution Program for TODA Members" />
+    <meta name="theme-color" content="#1A5276" />
+
+    <!--
+      favicon – Vite rewrites this path correctly for the production base URL.
+      Keep it as SVG so no extra byte-heavy image format is requested on first load.
+    -->
+    <link rel="icon" type="image/svg+xml" href="/MRD/public/favicon.svg" />
+
+    <!--
+      Inline the absolute minimum CSS needed to show a centred spinner
+      BEFORE the async JS bundle has even started parsing. This prevents
+      a blank white flash (FOUC) and eliminates CLS on the login page.
+    -->
+    <style>
+      *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F0F2F5;color:#1C2833}
+      #app-shell{display:flex;align-items:center;justify-content:center;min-height:100vh}
+      .shell-spin{width:40px;height:40px;border:3px solid #D5D8DC;border-top-color:#1A5276;border-radius:50%;animation:spin .7s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+    </style>
+
+    <title>MRD – Monthly Rice Distribution Program</title>
+  </head>
+  <body>
+    <!--
+      #app-shell shows a spinner immediately (no JS needed).
+      React mounts into #root and React's render replaces #app-shell.
+    -->
+    <div id="root">
+      <div id="app-shell"><div class="shell-spin"></div></div>
+    </div>
+
+    <noscript>
+      <style>#app-shell{display:none}</style>
+      <p style="text-align:center;padding:2rem;font-family:sans-serif">
+        JavaScript is required to use the MRD Admin Portal. Please enable it in your browser settings.
+      </p>
+    </noscript>
+
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

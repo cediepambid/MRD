@@ -1,0 +1,1 @@
+import{K as a}from"./vendor-v0nGENHO.js";function i({status:e}){const d={Pending:"badge-pending",Approved:"badge-approved",Rejected:"badge-rejected","For Resubmission":"badge-resubmission",Claimed:"badge-claimed","Not Yet Claimed":"badge-not-claimed"};return a.jsx("span",{className:`badge ${d[e]||"badge-pending"}`,children:e||"—"})}export{i as S};
