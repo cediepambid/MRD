@@ -7,7 +7,7 @@ try {
     $pdo = getDB();
 
     $email = 'admin@mrd.gov.ph';
-    $plainPassword = 'password';
+    $plainPassword = 'Admin@2026';
     $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
 
     $stmt = $pdo->prepare("

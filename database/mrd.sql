@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(120) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('superadmin','mrd_admin','verifier','releasing_officer','viewer') DEFAULT 'mrd_admin',
+    role ENUM('admin','mrd_admin','verifier','releasing_officer','viewer') DEFAULT 'mrd_admin',
     avatar VARCHAR(255) DEFAULT NULL,
     is_active TINYINT(1) DEFAULT 1,
     last_login DATETIME DEFAULT NULL,
@@ -183,8 +183,8 @@ CREATE INDEX idx_activity_logs_ref ON activity_logs(reference_number);
 -- ============================================================
 INSERT INTO users (name, email, password, role) VALUES
 ('Super Administrator', 'admin@mrd.gov.ph',
- '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
- 'superadmin');
+ '$2y$10$SQ2o3OplcCtlPb5k2yhr8uGXqTOXZiU5C2PhY0M6YOMciVT.s9o0e',
+ 'admin');
 
 -- ============================================================
 -- DEFAULT SETTINGS

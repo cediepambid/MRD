@@ -133,8 +133,6 @@ if ($method === 'POST' && $action === 'login') {
 
         // --- Role check ---
         // Only 'admin' accounts may log in through this portal.
-        // If this triggers, the DB row still has an old role (superadmin, mrd_admin, etc.)
-        // Run: UPDATE users SET role='admin' WHERE email='admin@mrd.gov.ph';
         if ((string)$user['role'] !== 'admin') {
             jsonResponse([
                 'success'      => false,
