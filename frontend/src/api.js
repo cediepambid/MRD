@@ -4,10 +4,15 @@ import toast from 'react-hot-toast';
 // Show "backend is starting" toast at most once per minute so it never spams.
 let wakeUpToastAt = 0;
 
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const fallbackBaseUrl = import.meta.env.PROD ? '/api' : '/MRD/api';
+
 const api = axios.create({
   // In production (Render), VITE_API_BASE_URL is set in the Render dashboard.
   // In local dev (XAMPP), falls back to the proxied path.
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/MRD/api',
+  baseURL: (typeof envBaseUrl === 'string' && envBaseUrl.trim() !== '')
+    ? envBaseUrl
+    : fallbackBaseUrl,
   timeout: 12000,
   withCredentials: false,
   headers: { 'Content-Type': 'application/json' },
