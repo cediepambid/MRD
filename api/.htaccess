@@ -1,0 +1,17 @@
+Options -Indexes
+
+# Handle CORS preflight (OPTIONS) requests at Apache level
+# so they never get blocked before reaching PHP.
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule .* - [R=204,L]
+
+<IfModule mod_headers.c>
+    # These headers are added to EVERY response (including the 204 above).
+    # PHP will also set Access-Control-Allow-Origin dynamically for non-OPTIONS
+    # requests; Apache's value here acts as a safe fallback.
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, X-Session-Token, Authorization"
+    Header always set Access-Control-Max-Age "86400"
+</IfModule>
