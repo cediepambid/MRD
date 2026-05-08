@@ -8,29 +8,30 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('mrd_admin_token');
+    const token = localStorage.getItem('mrd_session_token');
     if (!token) { setLoading(false); return; }
 
     api.get('/auth.php?action=me')
       .then(res => {
         if (res.data.authenticated) setUser(res.data.user);
         else {
-          sessionStorage.removeItem('mrd_admin_token');
-          sessionStorage.removeItem('mrd_admin_user');
+          localStorage.removeItem('mrd_session_token');
+          localStorage.removeItem('mrd_admin_user');
         }
       })
       .catch(() => {
-        sessionStorage.removeItem('mrd_admin_token');
-        sessionStorage.removeItem('mrd_admin_user');
+        localStorage.removeItem('mrd_session_token');
+        localStorage.removeItem('mrd_admin_user');
       })
       .finally(() => setLoading(false));
   }, []);
 
   const login = async (email, password) => {
     const res = await api.post('/auth.php?action=login', { email, password });
+    console.log('Login response:', res.data);
     if (res.data.success) {
-      sessionStorage.setItem('mrd_admin_token', res.data.session_token);
-      sessionStorage.setItem('mrd_admin_user',  JSON.stringify(res.data.user));
+      localStorage.setItem('mrd_admin_user', JSON.stringify(res.data.user));
+      localStorage.setItem('mrd_session_token', res.data.session_token || res.data.token || '');
       setUser(res.data.user);
     }
     return res.data;
@@ -38,8 +39,8 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try { await api.post('/auth.php?action=logout'); } catch {}
-    sessionStorage.removeItem('mrd_admin_token');
-    sessionStorage.removeItem('mrd_admin_user');
+    localStorage.removeItem('mrd_session_token');
+    localStorage.removeItem('mrd_admin_user');
     setUser(null);
   };
 

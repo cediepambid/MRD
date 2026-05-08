@@ -14,18 +14,20 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5174,
     strictPort: true,
-    proxy: {
-      '/MRD/api': {
-        target: 'http://127.0.0.1',
-        changeOrigin: true,
-        secure: false,
-      },
-      '/MRD/uploads': {
-        target: 'http://127.0.0.1',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    proxy: (typeof process !== 'undefined' && process.env && process.env.VITE_DEV_PROXY_TARGET)
+      ? {
+          '/api': {
+            target: process.env.VITE_DEV_PROXY_TARGET,
+            changeOrigin: true,
+            secure: false,
+          },
+          '/uploads': {
+            target: process.env.VITE_DEV_PROXY_TARGET,
+            changeOrigin: true,
+            secure: false,
+          },
+        }
+      : undefined,
   },
 
   build: {

@@ -7,7 +7,7 @@ const FIELDS = [
   { key: 'system_name',      label: 'System Name',        placeholder: 'e.g. MRD – Monthly Rice Distribution Program' },
   { key: 'system_subtitle',  label: 'System Subtitle',    placeholder: 'e.g. Tricycle Franchise Holders / TODA Members' },
   { key: 'lgu_name',         label: 'LGU Name',           placeholder: 'e.g. City of Manila – PESO Office' },
-  { key: 'reg_url',          label: 'Registration URL',   placeholder: 'http://localhost/MRD/public/#/register' },
+  { key: 'reg_url',          label: 'Registration URL',   placeholder: 'e.g. https://example.com/#/register' },
   { key: 'max_file_size_mb', label: 'Max File Size (MB)', placeholder: '5', type: 'number' },
 ];
 

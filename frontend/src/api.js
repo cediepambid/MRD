@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 let wakeUpToastAt = 0;
 
 const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
-const fallbackBaseUrl = import.meta.env.PROD ? '/api' : '/MRD/api';
+const fallbackBaseUrl = '/api';
 
 const api = axios.create({
   // In production (Render), VITE_API_BASE_URL is set in the Render dashboard.
@@ -19,7 +19,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
-  const token = sessionStorage.getItem('mrd_admin_token');
+  const token = localStorage.getItem('mrd_session_token');
   if (token) {
     config.headers['X-Session-Token'] = token;
   }
@@ -45,8 +45,8 @@ api.interceptors.response.use(
     }
 
     if (err.response?.status === 401) {
-      sessionStorage.removeItem('mrd_admin_token');
-      sessionStorage.removeItem('mrd_admin_user');
+      localStorage.removeItem('mrd_session_token');
+      localStorage.removeItem('mrd_admin_user');
       if (!window.location.hash.includes('/login')) {
         window.location.hash = '#/admin/login';
       }
