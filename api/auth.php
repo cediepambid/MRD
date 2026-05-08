@@ -4,41 +4,7 @@
 // Handles: debug, login, logout, me, profile
 // ============================================================
 require_once __DIR__ . '/config.php';
-
-// ============================================================
-// CORS — uses FRONTEND_URL env var set on Render.
-// Falls back to localhost for local XAMPP development.
-// Requests with no Origin header (Postman, PowerShell, curl)
-// are never blocked — they receive Access-Control-Allow-Origin: *
-// ============================================================
-$frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:5174';
-$origin      = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-$localOrigins = [
-    'http://localhost:5174',
-    'http://localhost',
-    'http://127.0.0.1:5174',
-    'http://127.0.0.1',
-];
-
-$originAllowed = in_array($origin, $localOrigins, true) || $origin === $frontendUrl;
-
-if ($originAllowed && $origin !== '') {
-    header('Access-Control-Allow-Origin: ' . $origin);
-} else {
-    header('Access-Control-Allow-Origin: *');
-}
-
-header('Access-Control-Allow-Credentials: false');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Session-Token, Authorization');
-header('Content-Type: application/json; charset=utf-8');
-
-// Handle CORS preflight — return 200 immediately, no PHP logic needed
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
+require_once __DIR__ . '/cors.php';
 
 // ============================================================
 $method = $_SERVER['REQUEST_METHOD'];
