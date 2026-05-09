@@ -66,6 +66,7 @@ export default function PendingReviews() {
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(app.submitted_at).toLocaleDateString('en-PH')}
                     </td>
+                    <td>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button className="btn btn-primary btn-sm" onClick={() => setSelectedId(app.id)}>
                           <Eye size={14} /> Review
