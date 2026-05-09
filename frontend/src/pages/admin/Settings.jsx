@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Save, RefreshCw, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api';
+import { getFileUrl } from '../../api';
 
 const FIELDS = [
   { key: 'system_name',      label: 'System Name',        placeholder: 'e.g. MRD – Monthly Rice Distribution Program' },
@@ -77,6 +78,41 @@ export default function Settings() {
             <div className="spinner-sm" /> Loading settings…
           </div>
         )}
+
+        <div className="form-group">
+          <label className="form-label">System Logo</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {settings.system_logo ? (
+              <img src={getFileUrl(settings.system_logo)} alt="Logo" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 8, background: '#f8f9fa', padding: 4, border: '1px solid var(--border)' }} />
+            ) : (
+              <div style={{ width: 64, height: 64, borderRadius: 8, background: '#f8f9fa', border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🍚</div>
+            )}
+            <div style={{ flex: 1 }}>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append('logo', file);
+                  const loadingToast = toast.loading('Uploading logo...');
+                  try {
+                    const res = await api.post('/settings.php?action=upload_logo', formData, {
+                      headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    setSettings(s => ({ ...s, system_logo: res.data.logo_url }));
+                    toast.success('Logo uploaded successfully!', { id: loadingToast });
+                  } catch (err) {
+                    toast.error(err.response?.data?.error || 'Failed to upload logo', { id: loadingToast });
+                  }
+                }}
+                style={{ fontSize: '0.85rem' }}
+              />
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: 4 }}>Recommended: Square PNG or SVG (max 2MB)</p>
+            </div>
+          </div>
+        </div>
 
         {FIELDS.map(f => (
           <div key={f.key} className="form-group">

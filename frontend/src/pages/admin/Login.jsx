@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import api, { getFileUrl } from '../../api';
 
 export default function AdminLogin() {
   const navigate   = useNavigate();
@@ -10,6 +11,13 @@ export default function AdminLogin() {
   const [show, setShow]     = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
+  const [sysSettings, setSysSettings] = useState({});
+
+  useEffect(() => {
+    api.get('/settings.php')
+      .then(res => setSysSettings(res.data || {}))
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,9 +42,15 @@ export default function AdminLogin() {
     <div className="login-page">
       <div className="login-card">
         <div className="login-logo">
-          <div className="logo-circle">🍚</div>
-          <h2>MRD Admin Portal</h2>
-          <p>Monthly Rice Distribution Program</p>
+          <div className="logo-circle" style={{ overflow: 'hidden', padding: sysSettings.system_logo ? 0 : '' }}>
+            {sysSettings.system_logo ? (
+              <img src={getFileUrl(sysSettings.system_logo)} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            ) : (
+              '🍚'
+            )}
+          </div>
+          <h2>{sysSettings.system_name || 'MRD Admin Portal'}</h2>
+          <p>{sysSettings.system_subtitle || 'Monthly Rice Distribution Program'}</p>
         </div>
 
         {error && (

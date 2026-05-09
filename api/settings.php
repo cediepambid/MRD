@@ -4,9 +4,8 @@ require_once 'config.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// GET all settings
+// GET all settings (Public for logo/name)
 if ($method === 'GET') {
-    $auth = authGuard();
     $db   = getDB();
     $rows = $db->query("SELECT `key`, value FROM settings")->fetchAll();
     $out  = [];
@@ -30,6 +29,38 @@ if ($method === 'PUT') {
     }
 
     jsonResponse(['success' => true, 'message' => 'Settings updated.']);
+}
+
+// POST upload logo
+if ($method === 'POST' && ($_GET['action'] ?? '') === 'upload_logo') {
+    $auth = roleGuard(['admin']);
+    $db   = getDB();
+
+    if (!isset($_FILES['logo']) || $_FILES['logo']['error'] !== UPLOAD_ERR_OK) {
+        jsonResponse(['error' => 'No file uploaded or upload error.'], 400);
+    }
+
+    $file = $_FILES['logo'];
+    $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, ['png', 'jpg', 'jpeg', 'svg', 'webp'])) {
+        jsonResponse(['error' => 'Invalid file type. Only PNG, JPG, SVG, and WEBP are allowed.'], 400);
+    }
+
+    // Ensure directory exists
+    $uploadDir = UPLOADS_DIR . 'system/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+    $fileName = 'logo_' . time() . '.' . $ext;
+    $filePath = $uploadDir . $fileName;
+
+    if (move_uploaded_file($file['tmp_name'], $filePath)) {
+        $db->prepare("INSERT INTO settings (`key`, value) VALUES ('system_logo', ?) ON DUPLICATE KEY UPDATE value = ?")
+           ->execute(['system/' . $fileName, 'system/' . $fileName]);
+        
+        jsonResponse(['success' => true, 'logo_url' => 'system/' . $fileName]);
+    } else {
+        jsonResponse(['error' => 'Failed to save logo.'], 500);
+    }
 }
 
 jsonResponse(['error' => 'Method not allowed.'], 405);

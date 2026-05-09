@@ -7,7 +7,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import api from '../api';
+import api, { getFileUrl } from '../api';
 
 // ── Sidebar navigation ─────────────────────────────────────────────
 const NAV = [
@@ -53,9 +53,17 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [badges, setBadges]             = useState({ pending: 0, notif: 0 });
+  const [sysSettings, setSysSettings]   = useState({});
   const settingsRef  = useRef(null);
   const fetchingRef  = useRef(false);
   const prevNotifRef = useRef(0);
+
+  // ── Fetch system settings ────────────────────────────────────────
+  const fetchSettings = () => {
+    api.get('/settings.php')
+      .then(res => setSysSettings(res.data || {}))
+      .catch(() => {});
+  };
 
   // ── Fetch badge counts (pending apps + unread notifications) ──────
   const fetchBadges = useCallback(() => {
@@ -82,6 +90,7 @@ export default function AdminLayout() {
 
   // Run once on mount: fetch immediately, then poll every 30 s.
   useEffect(() => {
+    fetchSettings();
     fetchBadges();
     const timer = setInterval(fetchBadges, POLL_MS);
     return () => clearInterval(timer);
@@ -123,8 +132,15 @@ export default function AdminLayout() {
       {/* ── Sidebar ─────────────────────────────────────────────── */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
-          <h1>🍚 MRD System</h1>
-          <p>Monthly Rice Distribution</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            {sysSettings.system_logo ? (
+              <img src={getFileUrl(sysSettings.system_logo)} alt="logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+            ) : (
+              <span style={{ fontSize: '1.5rem' }}>🍚</span>
+            )}
+            <h1 style={{ fontSize: '1.15rem', margin: 0 }}>{sysSettings.system_name || 'MRD System'}</h1>
+          </div>
+          <p>{sysSettings.system_subtitle || 'Monthly Rice Distribution'}</p>
           <span className="sidebar-badge">GOV'T PROGRAM</span>
         </div>
 
