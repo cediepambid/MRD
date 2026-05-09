@@ -188,16 +188,9 @@ export default function AdminLayout() {
             <button className="hamburger-btn" onClick={() => setSidebarOpen(s => !s)}>
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {sysSettings.system_logo ? (
-                <img src={getFileUrl(sysSettings.system_logo)} alt="logo" className="topnav-logo" style={{ width: 28, height: 28, objectFit: 'contain' }} />
-              ) : (
-                <span className="topnav-logo">🍚</span>
-              )}
-              <span className="topnav-title" style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                {sysSettings.system_name || 'MRD Portal'}
-              </span>
-            </div>
+            <span className="topnav-title" style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>
+              MRD Admin Portal
+            </span>
           </div>
 
           <div className="topnav-right">
