@@ -238,12 +238,32 @@ p  { font-size: 1rem; }
   gap: 12px;
 }
 
-.topnav-user {
+.topnav-user-info {
+  text-align: left;
+}
+
+.topnav-user-info .name {
+  fontWeight: 600;
+  fontSize: 0.85rem;
+}
+
+.topnav-user-info .role {
+  fontSize: 0.7rem;
+  color: var(--text-muted);
+}
+
+.topnav-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+.topnav-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
+  justify-content: center;
+  font-size: 1.4rem;
 }
 
 .topnav-avatar {
@@ -1310,9 +1330,13 @@ textarea.form-control {
   table { font-size: 0.8rem; }
   thead th, tbody td { padding: 8px 10px; }
   
-  .topnav { padding: 0 16px; }
-  .topnav-signout-btn span { display: none; } /* Hide "Sign Out" text on mobile */
-  .topnav-signout-btn { padding: 8px; }
+  .topnav { padding: 0 12px; }
+  .topnav-title { display: none; } 
+  .topnav-user-info { display: none; }
+  .topnav-divider { display: none; }
+  .topnav-signout-btn span { display: none; }
+  .topnav-signout-btn { padding: 8px; border: none; background: #FEF2F2; }
+  .topnav-right { gap: 4px; }
 }
 
 @media (max-width: 480px) {
@@ -1322,7 +1346,6 @@ textarea.form-control {
   .public-page { padding: 16px 12px 40px; }
   .step-item { font-size: 0.72rem; }
   .step-num { width: 28px; height: 28px; font-size: 0.78rem; }
-  .topnav-title { display: none; } /* Hide "Admin Portal" text on very small phones */
 }
 
 /* ================================================================

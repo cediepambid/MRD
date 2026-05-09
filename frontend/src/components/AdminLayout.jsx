@@ -188,35 +188,20 @@ export default function AdminLayout() {
             <button className="hamburger-btn" onClick={() => setSidebarOpen(s => !s)}>
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <span className="topnav-title" style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>
-              MRD Admin Portal
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {sysSettings.system_logo ? (
+                <img src={getFileUrl(sysSettings.system_logo)} alt="logo" className="topnav-logo" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+              ) : (
+                <span className="topnav-logo">🍚</span>
+              )}
+              <span className="topnav-title" style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem', whiteSpace: 'nowrap' }}>
+                {sysSettings.system_name || 'MRD Portal'}
+              </span>
+            </div>
           </div>
 
           <div className="topnav-right">
-
             {/* ── Bell icon with real-time badge ── */}
-            <button
-              onClick={() => navigate('/admin/notifications')}
-              className="topnav-icon-btn"
-              title="Notifications"
-            >
-              <Bell size={21} />
-              {badges.notif > 0 && (
-                <span style={{
-                  position: 'absolute', top: 1, right: 1,
-                  background: 'var(--danger)', color: '#fff',
-                  borderRadius: '99px', fontSize: '0.62rem', fontWeight: 700,
-                  minWidth: 17, height: 17,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  padding: '0 4px', lineHeight: 1,
-                }}>
-                  {badges.notif > 99 ? '99+' : badges.notif}
-                </span>
-              )}
-            </button>
-
-            {/* ── Settings dropdown ── */}
             <div ref={settingsRef} style={{ position: 'relative' }}>
               <button
                 className="topnav-icon-btn"
