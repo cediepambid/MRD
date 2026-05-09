@@ -35,8 +35,6 @@ export default function Dashboard() {
     { label: 'Total Applications', value: s.total_applications, icon: FileText,    color: 'blue',   link: '/admin/applications' },
     { label: 'Pending Review',     value: s.pending,            icon: Clock,       color: 'yellow', link: '/admin/pending' },
     { label: 'Approved',           value: s.approved,           icon: CheckCircle, color: 'green',  link: '/admin/beneficiaries' },
-    { label: 'Rejected',           value: s.rejected,           icon: XCircle,     color: 'red',    link: '/admin/applications?status=Rejected' },
-    { label: 'For Resubmission',   value: s.for_resubmission,   icon: RefreshCw,   color: 'orange', link: '/admin/applications?status=For+Resubmission' },
     { label: 'Beneficiaries',      value: s.total_beneficiaries, icon: Users,      color: 'navy',   link: '/admin/beneficiaries' },
     { label: 'Rice Claimed',       value: s.claimed,             icon: Package,    color: 'blue',   link: '/admin/claimed' },
     { label: 'Not Yet Claimed',    value: s.not_yet_claimed,     icon: Archive,    color: 'gray',   link: '/admin/not-yet-claimed' },
@@ -109,105 +107,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-        <div className="card">
-          <div className="card-header">
-            <h4 className="card-title">Applications by Barangay</h4>
-          </div>
-          {loading ? (
-            <div style={{ padding: '40px 0', textAlign: 'center' }}>
-              <div className="spinner" style={{ margin: '0 auto' }} />
-            </div>
-          ) : (data?.by_barangay?.length ?? 0) === 0 ? (
-            <div className="empty-state" style={{ padding: '40px 0' }}>
-              <TrendingUp size={40} />
-              <p>No data yet</p>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={data.by_barangay} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F4F6F7" />
-                <XAxis dataKey="barangay" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="count" fill="var(--primary)" radius={[4,4,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
 
-        <div className="card">
-          <div className="card-header">
-            <h4 className="card-title">Monthly Submissions</h4>
-          </div>
-          {loading ? (
-            <div style={{ padding: '40px 0', textAlign: 'center' }}>
-              <div className="spinner" style={{ margin: '0 auto' }} />
-            </div>
-          ) : (data?.monthly?.length ?? 0) === 0 ? (
-            <div className="empty-state" style={{ padding: '40px 0' }}>
-              <TrendingUp size={40} />
-              <p>No data yet</p>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={data.monthly} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#F4F6F7" />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Bar dataKey="count" fill="var(--primary-light)" radius={[4,4,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
-        <div className="card">
-          <div className="card-header">
-            <h4 className="card-title">Application Status</h4>
-          </div>
-          {loading ? (
-            <div style={{ padding: '40px 0', textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
-          ) : pieData.length === 0 ? (
-            <div className="empty-state" style={{ padding: '40px 0' }}><p>No data yet</p></div>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" outerRadius={80} dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
-                  {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        <div className="card">
-          <div className="card-header">
-            <h4 className="card-title">Rice Distribution Status</h4>
-          </div>
-          {loading ? (
-            <div style={{ padding: '40px 0', textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }} /></div>
-          ) : claimPie.length === 0 ? (
-            <div className="empty-state" style={{ padding: '40px 0' }}><p>No beneficiaries yet</p></div>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={claimPie} cx="50%" cy="50%" outerRadius={80} dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
-                  <Cell fill="#2471A3" />
-                  <Cell fill="#AAB7B8" />
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
 
       {/* Recent applications */}
       <div className="card">
