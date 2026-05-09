@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { BarChart2, Download, Printer, Search, Filter } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { BarChart2, Download, Printer, Search, Filter, Loader2 } from 'lucide-react';
 import api from '../../api';
 import StatusBadge from '../../components/StatusBadge';
 
@@ -21,7 +21,7 @@ export default function Reports() {
   const [data, setData]         = useState(null);
   const [loading, setLoading]   = useState(false);
 
-  const generateReport = async () => {
+  const generateReport = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get('/reports.php', {
@@ -33,7 +33,15 @@ export default function Reports() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [type, barangay, dateFrom, dateTo]);
+
+  // Reactive: update report whenever filters change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      generateReport();
+    }, 300); // Small debounce for typing in Barangay
+    return () => clearTimeout(timer);
+  }, [generateReport]);
 
   const printReport = () => window.print();
 
@@ -74,10 +82,11 @@ export default function Reports() {
           <input type="date" className="filter-select" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
           <span style={{ color: 'var(--text-muted)', lineHeight: '38px' }}>to</span>
           <input type="date" className="filter-select" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-          <button className="btn btn-primary" onClick={generateReport} disabled={loading}>
-            <Filter size={16} />
-            {loading ? 'Generating...' : 'Generate Report'}
-          </button>
+          {loading && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 600 }}>
+              <Loader2 size={16} className="spinner" /> Updating...
+            </div>
+          )}
         </div>
       </div>
 
