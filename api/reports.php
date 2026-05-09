@@ -71,15 +71,16 @@ $rows = $data->fetchAll();
 
 // Summary by barangay
 $byBarangay = $db->prepare("
-    SELECT barangay,
+    SELECT a.barangay,
            COUNT(*) AS total,
-           SUM(status = 'Approved')           AS approved,
-           SUM(status = 'Pending')            AS pending,
-           SUM(status = 'Rejected')           AS rejected,
-           SUM(status = 'For Resubmission')   AS for_resubmission
+           SUM(CASE WHEN a.status = 'Approved' THEN 1 ELSE 0 END) AS approved,
+           SUM(CASE WHEN a.status = 'Pending' THEN 1 ELSE 0 END) AS pending,
+           SUM(CASE WHEN a.status = 'Rejected' THEN 1 ELSE 0 END) AS rejected,
+           SUM(CASE WHEN a.status = 'For Resubmission' THEN 1 ELSE 0 END) AS for_resubmission
     FROM applications a
-    WHERE " . implode(' AND ', $where) . "
-    GROUP BY barangay
+    LEFT JOIN beneficiaries b ON b.application_id = a.id
+    WHERE $whereStr
+    GROUP BY a.barangay
     ORDER BY total DESC
 ");
 $byBarangay->execute($params);

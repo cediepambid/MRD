@@ -26,7 +26,6 @@ const Reports        = lazy(() => import('./pages/admin/Reports'));
 const QRCode         = lazy(() => import('./pages/admin/QRCode'));
 const Notifications  = lazy(() => import('./pages/admin/Notifications'));
 const Users          = lazy(() => import('./pages/admin/Users'));
-const ActivityLogs   = lazy(() => import('./pages/admin/ActivityLogs'));
 const Settings       = lazy(() => import('./pages/admin/Settings'));
 
 // ── Lightweight fallback shown while a lazy chunk is downloading ──
@@ -85,7 +84,6 @@ function AppRoutes() {
           <Route path="qr-code"         element={<QRCode />} />
           <Route path="notifications"   element={<Notifications />} />
           <Route path="users"           element={<Users />} />
-          <Route path="activity-logs"   element={<ActivityLogs />} />
           <Route path="settings"        element={<Settings />} />
         </Route>
 
