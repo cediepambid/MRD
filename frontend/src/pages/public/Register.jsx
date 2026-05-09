@@ -249,11 +249,12 @@ export default function Register() {
         fd.append('file', file);
 
         try {
-          await api.post('/upload.php', fd);
+          await api.postForm('/upload.php', fd);
           setUploaded(u => ({ ...u, [attKey]: true }));
         } catch (err) {
           console.error(`Upload failed for ${attKey}`, err);
-          toast.error(`Failed to upload ${ATTACHMENTS.find(a=>a.key===attKey)?.label}.`);
+          const serverErr = err.response?.data?.error;
+          toast.error(serverErr ? `Upload Error: ${serverErr}` : `Failed to upload ${ATTACHMENTS.find(a=>a.key===attKey)?.label}.`);
         } finally {
           setUploading(u => ({ ...u, [attKey]: false }));
         }
