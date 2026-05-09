@@ -249,9 +249,7 @@ export default function Register() {
         fd.append('file', file);
 
         try {
-          await api.post('/upload.php', fd, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
+          await api.post('/upload.php', fd);
           setUploaded(u => ({ ...u, [attKey]: true }));
         } catch (err) {
           console.error(`Upload failed for ${attKey}`, err);
@@ -731,13 +729,11 @@ function AttachmentUploader({ att, file, preview, uploadedInfo, uploading, refNu
           ) : preview ? (
             <img src={preview} alt="preview" />
           ) : null}
-          <div className="upload-preview-info">
-            <div className="file-name">{file.name}</div>
-            <div className="file-size">{(file.size / 1024).toFixed(1)} KB</div>
+          <div className="upload-preview-info" style={{ display: 'flex', alignItems: 'center' }}>
             {uploading ? (
-              <div style={{ fontSize: '0.78rem', color: 'var(--primary)' }}>Uploading...</div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>Uploading...</div>
             ) : (
-              <div style={{ fontSize: '0.78rem', color: 'var(--success)', fontWeight: 600 }}>✓ Attached</div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--success)', fontWeight: 600 }}>✓ Attached</div>
             )}
           </div>
           <button 
