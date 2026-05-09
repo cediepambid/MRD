@@ -72,7 +72,6 @@ export default function Beneficiaries() {
                   <th>Cellphone</th>
                   <th>Claim Status</th>
                   <th>Date Approved</th>
-                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -86,11 +85,6 @@ export default function Beneficiaries() {
                     <td><StatusBadge status={b.claim_status} /></td>
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {b.approved_at ? new Date(b.approved_at).toLocaleDateString('en-PH') : '—'}
-                    </td>
-                    <td>
-                      <button className="btn btn-primary btn-sm" onClick={() => setSelectedAppId(b.application_id)}>
-                        <Eye size={14} /> View
-                      </button>
                     </td>
                   </tr>
                 ))}
