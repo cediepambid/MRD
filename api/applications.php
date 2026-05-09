@@ -235,8 +235,8 @@ if ($method === 'GET' && $action === 'list') {
         $params[] = $_GET['status'];
     }
     if (!empty($_GET['barangay'])) {
-        $where[]  = 'a.barangay = ?';
-        $params[] = $_GET['barangay'];
+        $where[]  = 'a.barangay LIKE ?';
+        $params[] = '%' . $_GET['barangay'] . '%';
     }
     if (!empty($_GET['toda_name'])) {
         $where[]  = 'a.toda_name LIKE ?';

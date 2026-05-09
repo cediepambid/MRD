@@ -21,9 +21,28 @@ export default function Applications() {
   const [page, setPage]       = useState(1);
   const [selectedId, setSelectedId] = useState(null);
 
+  // Debounced filters for real-time search
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [debouncedBarangay, setDebouncedBarangay] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setDebouncedBarangay(barangay);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search, barangay]);
+
   const fetchApps = useCallback(() => {
     setLoading(true);
-    const p = { page, limit: 20, search, status, barangay };
+    const p = { 
+      page, 
+      limit: 20, 
+      search: debouncedSearch, 
+      status, 
+      barangay: debouncedBarangay 
+    };
     api.get('/applications.php?action=list', { params: p })
       .then(res => {
         setApps(res.data.data || []);
@@ -32,12 +51,14 @@ export default function Applications() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page, search, status, barangay]);
+  }, [page, debouncedSearch, status, debouncedBarangay]);
 
   useEffect(() => { fetchApps(); }, [fetchApps]);
 
   const handleSearch = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    setDebouncedSearch(search);
+    setDebouncedBarangay(barangay);
     setPage(1);
     fetchApps();
   };
@@ -67,7 +88,7 @@ export default function Applications() {
               {STATUSES.filter(Boolean).map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             <input type="text" className="filter-select" placeholder="Filter by barangay..."
-              value={barangay} onChange={e => { setBarangay(e.target.value); setPage(1); }} />
+              value={barangay} onChange={e => setBarangay(e.target.value)} />
             <button type="submit" className="btn btn-primary btn-sm">
               <Filter size={14} /> Apply
             </button>
