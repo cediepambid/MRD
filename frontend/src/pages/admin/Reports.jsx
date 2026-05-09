@@ -127,7 +127,6 @@ export default function Reports() {
                       <th style={{ textAlign: 'center' }}>Total</th>
                       <th style={{ textAlign: 'center' }}>Approved</th>
                       <th style={{ textAlign: 'center' }}>Pending</th>
-                      <th style={{ textAlign: 'center' }}>Rejected</th>
                       <th style={{ textAlign: 'center' }}>For Resubmission</th>
                     </tr>
                   </thead>
@@ -138,7 +137,6 @@ export default function Reports() {
                         <td style={{ textAlign: 'center' }}><strong>{row.total}</strong></td>
                         <td style={{ textAlign: 'center', color: 'var(--success)' }}>{row.approved}</td>
                         <td style={{ textAlign: 'center', color: 'var(--warning)' }}>{row.pending}</td>
-                        <td style={{ textAlign: 'center', color: 'var(--danger)' }}>{row.rejected}</td>
                         <td style={{ textAlign: 'center', color: 'var(--warning)' }}>{row.for_resubmission}</td>
                       </tr>
                     ))}
