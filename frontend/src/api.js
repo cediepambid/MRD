@@ -33,15 +33,7 @@ api.interceptors.response.use(
     const isNetworkErr = !err.response;
 
     if (isTimeout || isNetworkErr) {
-      const now = Date.now();
-      if (now - wakeUpToastAt > 60_000) {
-        wakeUpToastAt = now;
-        toast('Backend is starting. Please wait or try again.', {
-          icon: '⏳',
-          duration: 7000,
-          id: 'backend-wakeup',
-        });
-      }
+      // Do nothing, just fail silently instead of showing the wakeup toast
     }
 
     if (err.response?.status === 401) {

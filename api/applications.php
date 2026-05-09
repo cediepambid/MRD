@@ -447,4 +447,42 @@ if ($method === 'PUT' && $action === 'update_attachment') {
     jsonResponse(['success' => true]);
 }
 
+// ============================================================
+// ADMIN: DELETE /api/applications.php?action=delete&id=1
+// Delete an application and its attachments
+// ============================================================
+if ($method === 'DELETE' && $action === 'delete') {
+    $auth = roleGuard(['admin']);
+    $id   = (int)($_GET['id'] ?? 0);
+
+    if (!$id) jsonResponse(['error' => 'Application ID required.'], 400);
+
+    $db = getDB();
+    
+    // Check if application exists
+    $stmt = $db->prepare("SELECT * FROM applications WHERE id = ? LIMIT 1");
+    $stmt->execute([$id]);
+    $app = $stmt->fetch();
+    if (!$app) jsonResponse(['error' => 'Application not found.'], 404);
+
+    // Get and delete physical attachment files
+    $atts = $db->query("SELECT file_path FROM application_attachments WHERE application_id = " . $id)->fetchAll();
+    foreach ($atts as $att) {
+        $path = UPLOAD_DIR . $att['file_path'];
+        if (file_exists($path)) {
+            @unlink($path);
+        }
+    }
+
+    // Delete records from database
+    $db->prepare("DELETE FROM application_attachments WHERE application_id = ?")->execute([$id]);
+    $db->prepare("DELETE FROM beneficiaries WHERE application_id = ?")->execute([$id]);
+    $db->prepare("DELETE FROM applications WHERE id = ?")->execute([$id]);
+
+    logActivity($db, $auth['id'], $auth['name'], 'delete_application',
+        $app['reference_number'], $id, $app['status'], 'Deleted', 'Admin deleted application');
+
+    jsonResponse(['success' => true, 'message' => 'Application deleted successfully.']);
+}
+
 jsonResponse(['error' => 'Invalid request.'], 400);

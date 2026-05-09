@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Clock, Eye } from 'lucide-react';
+import { Clock, Eye, Trash2 } from 'lucide-react';
 import api from '../../api';
+import toast from 'react-hot-toast';
 import ApplicationModal from '../../components/ApplicationModal';
 
 export default function PendingReviews() {
@@ -65,10 +66,27 @@ export default function PendingReviews() {
                     <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                       {new Date(app.submitted_at).toLocaleDateString('en-PH')}
                     </td>
-                    <td>
-                      <button className="btn btn-primary btn-sm" onClick={() => setSelectedId(app.id)}>
-                        <Eye size={14} /> Review
-                      </button>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button className="btn btn-primary btn-sm" onClick={() => setSelectedId(app.id)}>
+                          <Eye size={14} /> Review
+                        </button>
+                        <button 
+                          className="btn btn-danger btn-sm" 
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this application? This cannot be undone.')) {
+                              api.delete(`/applications.php?action=delete&id=${app.id}`)
+                                .then(() => {
+                                  toast.success('Application deleted successfully');
+                                  fetch();
+                                })
+                                .catch(() => toast.error('Failed to delete application'));
+                            }
+                          }}
+                          title="Delete Application"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
