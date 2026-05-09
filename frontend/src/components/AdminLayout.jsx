@@ -188,7 +188,7 @@ export default function AdminLayout() {
             <button className="hamburger-btn" onClick={() => setSidebarOpen(s => !s)}>
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
-            <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>
+            <span className="topnav-title" style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1rem' }}>
               MRD Admin Portal
             </span>
           </div>

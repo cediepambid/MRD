@@ -1256,6 +1256,7 @@ textarea.form-control {
     position: fixed;
     transform: translateX(-100%);
     height: 100vh;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.25);
   }
 
   .sidebar.open {
@@ -1265,7 +1266,8 @@ textarea.form-control {
   .sidebar-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
     z-index: 99;
     display: none;
   }
@@ -1274,37 +1276,53 @@ textarea.form-control {
 
   .hamburger-btn { display: flex; }
 
-  .page-content { padding: 16px; }
+  .page-content { padding: 16px 12px; }
 
-  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 
-  .form-row, .form-row-3 { grid-template-columns: 1fr; }
+  .form-row, .form-row-3 { grid-template-columns: 1fr; gap: 12px; }
 
-  .detail-grid { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: 1fr; gap: 8px; }
 
-  .card-header { flex-direction: column; align-items: flex-start; }
+  .card { padding: 16px; }
+  .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
 
-  .filters-bar { flex-direction: column; }
+  .filters-bar { flex-direction: column; align-items: stretch; gap: 12px; }
   .search-box  { min-width: 0; width: 100%; }
+  .filter-select { width: 100%; }
+  .filters-bar .btn { width: 100%; }
 
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.3rem; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.25rem; }
 
   .step-form { padding: 20px 16px 16px; }
 
-  .modal { border-radius: 14px 14px 0 0; }
-  .modal-overlay { align-items: flex-end; }
+  .modal { 
+    max-height: 85vh;
+    border-radius: 18px 18px 0 0; 
+  }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-lg { max-width: 100%; }
 
-  .public-header h1 { font-size: 1.4rem; }
+  .public-header h1 { font-size: 1.35rem; }
+  .public-header p { font-size: 0.9rem; }
 
-  table { font-size: 0.82rem; }
-  thead th, tbody td { padding: 10px 12px; }
+  table { font-size: 0.8rem; }
+  thead th, tbody td { padding: 8px 10px; }
+  
+  .topnav { padding: 0 16px; }
+  .topnav-signout-btn span { display: none; } /* Hide "Sign Out" text on mobile */
+  .topnav-signout-btn { padding: 8px; }
 }
 
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
-  .login-card { padding: 28px 20px; }
-  .btn-lg { padding: 13px 20px; font-size: 1rem; }
+  .login-card { padding: 32px 24px; border-radius: 12px; }
+  .btn-lg { padding: 12px 20px; font-size: 0.95rem; }
+  .public-page { padding: 16px 12px 40px; }
+  .step-item { font-size: 0.72rem; }
+  .step-num { width: 28px; height: 28px; font-size: 0.78rem; }
+  .topnav-title { display: none; } /* Hide "Admin Portal" text on very small phones */
 }
 
 /* ================================================================
