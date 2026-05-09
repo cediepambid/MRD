@@ -24,6 +24,9 @@ $isAllowed = (
         'http://localhost',
         'http://127.0.0.1',
     ], true)
+    || preg_match('/^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/', $origin)
+    || preg_match('/^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/', $origin)
+    || preg_match('/^http:\/\/172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+(:\d+)?$/', $origin)
 );
 
 // Browser requests include Origin. PowerShell/curl/Postman often do not.

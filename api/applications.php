@@ -50,6 +50,7 @@ if ($method === 'POST' && $action === 'submit') {
         'drivers_license_number'=> sanitize($body['drivers_license_number'] ?? ''),
         'is_certified'          => 1,
         'ip_address'            => $_SERVER['REMOTE_ADDR'] ?? null,
+        'user_agent'            => $_SERVER['HTTP_USER_AGENT'] ?? null,
     ];
 
     $db  = getDB();
