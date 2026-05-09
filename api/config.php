@@ -25,9 +25,19 @@ define('DB_CHARSET', 'utf8mb4');
 // ============================================================
 // Application paths (used for uploads and QR link building)
 // ============================================================
-define('APP_URL',       getenv('APP_URL')  ?: 'http://localhost/MRD');
-define('UPLOAD_DIR',    __DIR__ . '/../uploads/');
-define('UPLOAD_URL',    APP_URL . '/uploads/');
+define('APP_URL', getenv('APP_URL') ?: 'http://localhost/MRD');
+
+// On Render, the api/ folder is served as the web root (/var/www/html),
+// so __DIR__.'/../uploads/' would go OUTSIDE the writable area.
+// Instead we use /tmp/uploads/ which is always writable on Render.
+if (getenv('RENDER')) {
+    define('UPLOAD_DIR', '/tmp/uploads/');
+    define('UPLOAD_URL', APP_URL . '/api/serve-file.php?path=');
+} else {
+    define('UPLOAD_DIR', __DIR__ . '/../uploads/');
+    define('UPLOAD_URL', APP_URL . '/uploads/');
+}
+
 define('MAX_FILE_SIZE', 5 * 1024 * 1024);
 define('ALLOWED_TYPES', ['image/jpeg','image/jpg','image/png','image/webp','application/pdf']);
 define('ALLOWED_EXTS',  ['jpg','jpeg','png','webp','pdf']);

@@ -82,16 +82,13 @@ $fullDir   = UPLOAD_DIR . $subDir;
 
 if (!is_dir($fullDir)) {
     if (!mkdir($fullDir, 0777, true)) {
-        $err = error_get_last();
-        $debug = " Dir: " . __DIR__ . " | UPLOAD_DIR: " . UPLOAD_DIR . " | fullDir: " . $fullDir;
-        jsonResponse(['error' => 'Failed to create directory. ' . ($err['message'] ?? '') . $debug], 500);
+        jsonResponse(['error' => 'Server storage error. Please contact support.'], 500);
     }
 }
 
 $destPath = $fullDir . $newName;
 if (!move_uploaded_file($tmpPath, $destPath)) {
-    $err = error_get_last();
-    jsonResponse(['error' => 'Failed to save the file. ' . ($err['message'] ?? '')], 500);
+    jsonResponse(['error' => 'Failed to save the file. Please try again.'], 500);
 }
 
 // Delete old attachment of same type for this application
