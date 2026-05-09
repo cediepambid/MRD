@@ -6,10 +6,11 @@ vendor/
 dist/
 build/
 
-# Ignore files in uploads but keep the directory structure
-uploads/*
-!uploads/.htaccess
-!uploads/*/
-!uploads/*/.gitkeep
+# Ignore uploaded media files but keep directories and .gitkeep
+uploads/**/*.jpg
+uploads/**/*.jpeg
+uploads/**/*.png
+uploads/**/*.webp
+uploads/**/*.pdf
 .DS_Store
 Thumbs.db

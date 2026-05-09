@@ -83,7 +83,8 @@ $fullDir   = UPLOAD_DIR . $subDir;
 if (!is_dir($fullDir)) {
     if (!mkdir($fullDir, 0777, true)) {
         $err = error_get_last();
-        jsonResponse(['error' => 'Failed to create directory. ' . ($err['message'] ?? '')], 500);
+        $debug = " Dir: " . __DIR__ . " | UPLOAD_DIR: " . UPLOAD_DIR . " | fullDir: " . $fullDir;
+        jsonResponse(['error' => 'Failed to create directory. ' . ($err['message'] ?? '') . $debug], 500);
     }
 }
 
