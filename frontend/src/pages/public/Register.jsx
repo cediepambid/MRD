@@ -578,7 +578,6 @@ export default function Register() {
                   refNum={form._tempRef}
                   onFile={(f) => handleFileChange(att.key, f)}
                   onRemove={() => removeFile(att.key)}
-                  fileInputRef={el => fileInputRefs.current[att.key] = el}
                 />
               ))}
             </div>
@@ -698,7 +697,9 @@ export default function Register() {
 }
 
 // ── Attachment Uploader Component ──────────────────────────────────
-function AttachmentUploader({ att, file, preview, uploadedInfo, uploading, refNum, onFile, onRemove, fileInputRef }) {
+function AttachmentUploader({ att, file, preview, uploadedInfo, uploading, refNum, onFile, onRemove }) {
+  const localRef = useRef(null);
+
   const handleDrop = (e) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
@@ -722,12 +723,12 @@ function AttachmentUploader({ att, file, preview, uploadedInfo, uploading, refNu
           className="upload-area"
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          onClick={() => fileInputRef?.click()}
+          onClick={() => localRef.current?.click()}
         >
           <input
             type="file"
             accept=".jpg,.jpeg,.png,.webp,.pdf"
-            ref={fileInputRef}
+            ref={localRef}
             onChange={(e) => onFile(e.target.files[0])}
             style={{ display: 'none' }}
           />
