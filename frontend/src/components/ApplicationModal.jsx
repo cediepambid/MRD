@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api';
+import { getFileUrl } from '../api';
 import StatusBadge from './StatusBadge';
 
 const ATTACHMENT_LABELS = {
@@ -279,10 +280,10 @@ export default function ApplicationModal({ id, onClose }) {
                           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                             {att.mime_type?.startsWith('image/') ? (
                               <img
-                                src={`/MRD/uploads/${att.file_path}`}
+                                src={getFileUrl(att.file_path)}
                                 alt={label}
                                 style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', border: '1px solid var(--border)' }}
-                                onClick={() => setPreviewImg(`/MRD/uploads/${att.file_path}`)}
+                                onClick={() => setPreviewImg(getFileUrl(att.file_path))}
                               />
                             ) : (
                               <div style={{ width: 56, height: 56, background: '#FDEDEC', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>
@@ -300,12 +301,12 @@ export default function ApplicationModal({ id, onClose }) {
                             <div style={{ display: 'flex', gap: 4 }}>
                               {att.mime_type?.startsWith('image/') && (
                                 <button className="btn btn-ghost btn-icon btn-sm"
-                                  onClick={() => setPreviewImg(`/MRD/uploads/${att.file_path}`)}>
+                                  onClick={() => setPreviewImg(getFileUrl(att.file_path))}>
                                   <Eye size={14} />
                                 </button>
                               )}
                               <a
-                                href={`/MRD/uploads/${att.file_path}`}
+                                href={getFileUrl(att.file_path)}
                                 download={att.file_name}
                                 className="btn btn-ghost btn-icon btn-sm"
                               >

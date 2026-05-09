@@ -7,12 +7,30 @@ let wakeUpToastAt = 0;
 const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
 const fallbackBaseUrl = '/api';
 
+export const apiBaseUrl = (typeof envBaseUrl === 'string' && envBaseUrl.trim() !== '')
+  ? envBaseUrl
+  : fallbackBaseUrl;
+
+// Build a URL to view/download an uploaded file.
+// On Render the files are served through serve-file.php; locally through /MRD/uploads/.
+export function getFileUrl(filePath) {
+  if (!filePath) return '';
+  
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  if (!isLocal) {
+    // On production (Render), always use the proxy script
+    return `${apiBaseUrl}/serve-file.php?path=${encodeURIComponent(filePath)}`;
+  }
+  
+  // Local: files are in /MRD/uploads/
+  return `/MRD/uploads/${filePath}`;
+}
+
 const api = axios.create({
   // In production (Render), VITE_API_BASE_URL is set in the Render dashboard.
   // In local dev (XAMPP), falls back to the proxied path.
-  baseURL: (typeof envBaseUrl === 'string' && envBaseUrl.trim() !== '')
-    ? envBaseUrl
-    : fallbackBaseUrl,
+  baseURL: apiBaseUrl,
   timeout: 12000,
   withCredentials: false,
   headers: { 'Content-Type': 'application/json' },
