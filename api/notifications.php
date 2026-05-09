@@ -53,4 +53,20 @@ if ($method === 'POST' && $action === 'mark_read') {
     jsonResponse(['success' => true]);
 }
 
+// DELETE notification
+if ($method === 'DELETE' && $action === 'delete') {
+    $auth = authGuard();
+    $db   = getDB();
+    $id   = (int)($_GET['id'] ?? 0);
+
+    if (!$id) {
+        jsonResponse(['error' => 'Notification ID is required.'], 400);
+    }
+
+    $db->prepare("DELETE FROM notifications WHERE id = ? AND (user_id = ? OR user_id IS NULL)")
+       ->execute([$id, $auth['id']]);
+
+    jsonResponse(['success' => true, 'message' => 'Notification deleted.']);
+}
+
 jsonResponse(['error' => 'Invalid request.'], 400);

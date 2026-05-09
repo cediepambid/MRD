@@ -214,12 +214,9 @@ export default function Track() {
         )}
 
         {/* Footer links */}
-        <div style={{ padding: '16px 28px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ padding: '16px 28px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'center' }}>
           <button className="btn btn-ghost btn-sm" onClick={() => navigate('/register')}>
             New Application
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={() => navigate('/admin/login')}>
-            Admin Login <ChevronRight size={14} />
           </button>
         </div>
       </div>

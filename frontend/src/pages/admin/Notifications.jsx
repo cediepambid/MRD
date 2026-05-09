@@ -29,6 +29,17 @@ export default function Notifications() {
     setList(l => l.map(n => n.id === id ? { ...n, is_read: 1 } : n));
   };
 
+  const removeNotif = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm('Delete this notification?')) return;
+    try {
+      await api.delete(`/notifications.php?action=delete&id=${id}`);
+      setList(l => l.filter(n => n.id !== id));
+    } catch {
+      alert('Failed to delete notification.');
+    }
+  };
+
   const markAllRead = async () => {
     await api.post('/notifications.php?action=mark_read', { id: 0 });
     setList(l => l.map(n => ({ ...n, is_read: 1 })));
@@ -105,6 +116,14 @@ export default function Notifications() {
                     {!n.is_read && (
                       <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)', display: 'block' }} />
                     )}
+                    <button 
+                      className="btn btn-ghost btn-icon btn-sm" 
+                      onClick={(e) => removeNotif(e, n.id)}
+                      title="Delete Notification"
+                      style={{ marginTop: 4, color: 'var(--text-muted)' }}
+                    >
+                      <XCircle size={14} />
+                    </button>
                   </div>
                 </div>
               );

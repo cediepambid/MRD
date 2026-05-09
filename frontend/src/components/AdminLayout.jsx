@@ -45,7 +45,7 @@ const SETTINGS_ITEMS = [
 ];
 
 // ── Polling interval (ms) for real-time notification badge ─────────
-const POLL_MS = 30_000;
+const POLL_MS = 10_000;
 
 export default function AdminLayout() {
   const { user, logout }  = useAuth();
@@ -55,17 +55,28 @@ export default function AdminLayout() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [badges, setBadges]             = useState({ pending: 0, notif: 0 });
   const settingsRef  = useRef(null);
-  const fetchingRef  = useRef(false); // guard: skip poll if previous one is still in-flight
+  const fetchingRef  = useRef(false);
+  const prevNotifRef = useRef(0);
 
   // ── Fetch badge counts (pending apps + unread notifications) ──────
   const fetchBadges = useCallback(() => {
     if (fetchingRef.current) return; // skip if a request is already pending
     fetchingRef.current = true;
     api.get('/dashboard.php')
-      .then(res => setBadges({
-        pending: res.data.summary?.pending     || 0,
-        notif:   res.data.unread_notifications || 0,
-      }))
+      .then(res => {
+        const newNotifCount = res.data.unread_notifications || 0;
+        if (newNotifCount > prevNotifRef.current) {
+          // New notification arrived!
+          import('react-hot-toast').then(({ default: toast }) => {
+            toast.success('New notification received!', { icon: '🔔', id: 'new-notif' });
+          });
+        }
+        prevNotifRef.current = newNotifCount;
+        setBadges({
+          pending: res.data.summary?.pending     || 0,
+          notif:   newNotifCount,
+        });
+      })
       .catch(() => {})
       .finally(() => { fetchingRef.current = false; });
   }, []);
