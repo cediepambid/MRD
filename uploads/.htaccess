@@ -1,0 +1,11 @@
+# Deny PHP execution in uploads directory for security
+<FilesMatch "\.php$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Only allow image and PDF files
+<FilesMatch "\.(jpg|jpeg|png|webp|pdf)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>

@@ -6,8 +6,10 @@ vendor/
 dist/
 build/
 
-uploads/
-storage/uploads/
-
+# Ignore files in uploads but keep the directory structure
+uploads/*
+!uploads/.htaccess
+!uploads/*/
+!uploads/*/.gitkeep
 .DS_Store
 Thumbs.db
