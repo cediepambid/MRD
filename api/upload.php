@@ -81,12 +81,16 @@ $subDir    = $attType . '/';
 $fullDir   = UPLOAD_DIR . $subDir;
 
 if (!is_dir($fullDir)) {
-    mkdir($fullDir, 0755, true);
+    if (!mkdir($fullDir, 0777, true)) {
+        $err = error_get_last();
+        jsonResponse(['error' => 'Failed to create directory. ' . ($err['message'] ?? '')], 500);
+    }
 }
 
 $destPath = $fullDir . $newName;
 if (!move_uploaded_file($tmpPath, $destPath)) {
-    jsonResponse(['error' => 'Failed to save the file. Please try again.'], 500);
+    $err = error_get_last();
+    jsonResponse(['error' => 'Failed to save the file. ' . ($err['message'] ?? '')], 500);
 }
 
 // Delete old attachment of same type for this application
