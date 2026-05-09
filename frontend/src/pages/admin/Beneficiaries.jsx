@@ -88,7 +88,7 @@ export default function Beneficiaries() {
                       {b.approved_at ? new Date(b.approved_at).toLocaleDateString('en-PH') : '—'}
                     </td>
                     <td>
-                      <button className="btn btn-primary btn-sm" onClick={() => setSelectedAppId(b.beneficiary_id)}>
+                      <button className="btn btn-primary btn-sm" onClick={() => setSelectedAppId(b.application_id)}>
                         <Eye size={14} /> View
                       </button>
                     </td>

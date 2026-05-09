@@ -58,7 +58,7 @@ if ($method === 'GET' && $action === 'list') {
 
     $stmt = $db->prepare("
         SELECT b.id AS beneficiary_id, b.claim_status, b.claimed_at, b.release_remarks,
-               a.reference_number, a.surname, a.given_name, a.middle_name,
+               a.id AS application_id, a.reference_number, a.surname, a.given_name, a.middle_name,
                a.complete_address, a.barangay, a.town_city, a.province,
                a.cellphone, a.toda_name, a.franchise_number,
                a.approved_at, a.status AS application_status,
