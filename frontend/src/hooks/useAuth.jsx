@@ -8,8 +8,14 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const handleUnauthorized = () => setUser(null);
+    window.addEventListener('mrd_unauthorized', handleUnauthorized);
+    
     const token = localStorage.getItem('mrd_session_token');
-    if (!token) { setLoading(false); return; }
+    if (!token) { 
+      setLoading(false); 
+      return () => window.removeEventListener('mrd_unauthorized', handleUnauthorized);
+    }
 
     api.get('/auth.php?action=me')
       .then(res => {
@@ -24,6 +30,8 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('mrd_admin_user');
       })
       .finally(() => setLoading(false));
+
+    return () => window.removeEventListener('mrd_unauthorized', handleUnauthorized);
   }, []);
 
   const login = async (email, password) => {

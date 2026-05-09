@@ -155,7 +155,7 @@ export default function Register() {
   // ── Step 2 validation ──────────────────────────────────────────
   const validateStep2 = () => {
     const required = ATTACHMENTS.filter(a => a.required);
-    const missing  = required.filter(a => !uploaded[a.key]);
+    const missing  = required.filter(a => !files[a.key]);
     if (missing.length > 0) {
       toast.error(`Please upload: ${missing.map(a => a.label).join(', ')}`);
       return false;
@@ -189,36 +189,6 @@ export default function Register() {
     } else {
       setPreviews(p => ({ ...p, [attKey]: 'pdf' }));
     }
-
-    // We need a reference number to upload — if no tempRef exists, use temp
-    const tempRef = form._tempRef || '';
-    if (tempRef) {
-      await uploadFile(attKey, file, tempRef);
-    }
-  };
-
-  const uploadFile = async (attKey, file, refNum) => {
-    setUploading(u => ({ ...u, [attKey]: true }));
-    const fd = new FormData();
-    fd.append('reference_number', refNum);
-    fd.append('attachment_type', attKey);
-    fd.append('file', file);
-
-    try {
-      const res = await api.post('/upload.php', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      if (res.data.success) {
-        setUploaded(u => ({ ...u, [attKey]: res.data }));
-        toast.success(`${ATTACHMENTS.find(a=>a.key===attKey)?.label} uploaded!`);
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Upload failed.');
-      setFiles(f => { const c = {...f}; delete c[attKey]; return c; });
-      setPreviews(p => { const c = {...p}; delete c[attKey]; return c; });
-    } finally {
-      setUploading(u => ({ ...u, [attKey]: false }));
-    }
   };
 
   const removeFile = (attKey) => {
@@ -231,29 +201,6 @@ export default function Register() {
   const goNext = async () => {
     if (step === 0) {
       if (!validateStep1()) return;
-      // Pre-register to get reference number for file uploads
-      if (!form._tempRef) {
-        try {
-          const res = await api.post('/applications.php?action=submit', {
-            ...form, is_certified: 1,
-          });
-          if (res.data.warning) {
-            setDupWarning(res.data);
-            return;
-          }
-          if (res.data.success) {
-            setRefNumber(res.data.reference_number);
-            setForm(f => ({ ...f, _tempRef: res.data.reference_number }));
-          }
-        } catch (err) {
-          if (err.response?.status === 409) {
-            setDupWarning(err.response.data);
-            return;
-          }
-          toast.error(err.response?.data?.error || 'Error saving application. Please try again.');
-          return;
-        }
-      }
       setStep(1);
       window.scrollTo(0,0);
     } else if (step === 1) {
@@ -269,17 +216,58 @@ export default function Register() {
   };
 
   // ── Final submit ───────────────────────────────────────────────
-  const handleSubmit = async () => {
+  const handleSubmit = async (force = false) => {
     if (!form.is_certified) {
       toast.error('Please check the certification box.');
       return;
     }
-    // Application was already submitted in step 0, just confirm
+    
     setSubmitting(true);
     try {
+      const payload = { ...form, is_certified: 1 };
+      if (force) payload.force_submit = 1;
+
+      const res = await api.post('/applications.php?action=submit', payload);
+
+      if (res.data.warning && !force) {
+        setDupWarning(res.data);
+        setSubmitting(false);
+        return;
+      }
+
+      const refNum = res.data.reference_number;
+      setRefNumber(refNum);
+
+      for (const attKey of Object.keys(files)) {
+        const file = files[attKey];
+        if (!file) continue;
+
+        setUploading(u => ({ ...u, [attKey]: true }));
+        const fd = new FormData();
+        fd.append('reference_number', refNum);
+        fd.append('attachment_type', attKey);
+        fd.append('file', file);
+
+        try {
+          await api.post('/upload.php', fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          setUploaded(u => ({ ...u, [attKey]: true }));
+        } catch (err) {
+          console.error(`Upload failed for ${attKey}`, err);
+          toast.error(`Failed to upload ${ATTACHMENTS.find(a=>a.key===attKey)?.label}.`);
+        } finally {
+          setUploading(u => ({ ...u, [attKey]: false }));
+        }
+      }
+
       setSubmitted(true);
     } catch (err) {
-      toast.error('Submission error. Please try again.');
+      if (err.response?.status === 409 && !force) {
+        setDupWarning(err.response.data);
+        return;
+      }
+      toast.error(err.response?.data?.error || 'Submission error. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -288,7 +276,7 @@ export default function Register() {
   // ── Duplicate override ─────────────────────────────────────────
   const proceedDespiteDuplicate = () => {
     setDupWarning(null);
-    setStep(1);
+    handleSubmit(true);
   };
 
   // ── Render success ─────────────────────────────────────────────
@@ -628,20 +616,20 @@ export default function Register() {
             </div>
 
             {/* Attachments summary */}
-            <h4 style={{ marginBottom: 12 }}>Uploaded Documents</h4>
+            <h4 style={{ marginBottom: 12 }}>Attached Documents</h4>
             <div style={{ marginBottom: 20 }}>
               {ATTACHMENTS.map(att => (
                 <div key={att.key} style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '10px 0', borderBottom: '1px solid var(--border)'
                 }}>
-                  {uploaded[att.key]
+                  {files[att.key]
                     ? <CheckCircle size={18} color="var(--success)" />
                     : <AlertCircle size={18} color={att.required ? 'var(--danger)' : 'var(--text-muted)'} />
                   }
                   <span style={{ flex: 1, fontSize: '0.9rem' }}>{att.label}</span>
-                  {uploaded[att.key]
-                    ? <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 600 }}>Uploaded</span>
+                  {files[att.key]
+                    ? <span style={{ fontSize: '0.8rem', color: 'var(--success)', fontWeight: 600 }}>Attached</span>
                     : <span style={{ fontSize: '0.8rem', color: att.required ? 'var(--danger)' : 'var(--text-muted)' }}>
                         {att.required ? 'Missing' : 'Optional'}
                       </span>
@@ -746,11 +734,20 @@ function AttachmentUploader({ att, file, preview, uploadedInfo, uploading, refNu
           <div className="upload-preview-info">
             <div className="file-name">{file.name}</div>
             <div className="file-size">{(file.size / 1024).toFixed(1)} KB</div>
-            {uploading && <div style={{ fontSize: '0.78rem', color: 'var(--primary)' }}>Uploading...</div>}
-            {uploadedInfo && <div style={{ fontSize: '0.78rem', color: 'var(--success)', fontWeight: 600 }}>✓ Uploaded</div>}
+            {uploading ? (
+              <div style={{ fontSize: '0.78rem', color: 'var(--primary)' }}>Uploading...</div>
+            ) : (
+              <div style={{ fontSize: '0.78rem', color: 'var(--success)', fontWeight: 600 }}>✓ Attached</div>
+            )}
           </div>
-          <button className="btn btn-ghost btn-icon" onClick={onRemove} title="Remove">
-            <X size={16} />
+          <button 
+            className="btn btn-ghost btn-icon" 
+            onClick={onRemove} 
+            title="Remove" 
+            disabled={uploading}
+            style={{ flexShrink: 0, color: 'var(--danger)', background: 'rgba(231, 76, 60, 0.1)' }}
+          >
+            <X size={18} />
           </button>
         </div>
       )}

@@ -47,6 +47,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('mrd_session_token');
       localStorage.removeItem('mrd_admin_user');
+      window.dispatchEvent(new Event('mrd_unauthorized'));
       if (!window.location.hash.includes('/login')) {
         window.location.hash = '#/admin/login';
       }

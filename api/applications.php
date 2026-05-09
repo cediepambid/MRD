@@ -67,7 +67,7 @@ if ($method === 'POST' && $action === 'submit') {
         $data['cellphone']
     ]);
     $duplicate = $dupStmt->fetch();
-    if ($duplicate) {
+    if ($duplicate && empty($body['force_submit'])) {
         jsonResponse([
             'warning'          => true,
             'duplicate_ref'    => $duplicate['reference_number'],
