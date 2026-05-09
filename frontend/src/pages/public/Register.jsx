@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   User, MapPin, Phone, Upload, CheckCircle,
@@ -14,7 +14,47 @@ const EDUCATION = [
   'Elementary Graduate','High School Graduate','Vocational / Technical',
   'College Level','College Graduate','Post Graduate','None'
 ];
-const PROVINCES = ['Metro Manila','Bulacan','Pampanga','Bataan','Nueva Ecija','Zambales','Cavite','Laguna','Batangas','Rizal','Quezon','Other'];
+const PROVINCES = [
+  'Abra', 'Agusan del Norte', 'Agusan del Sur', 'Aklan', 'Albay', 'Antique', 'Apayao', 'Aurora', 
+  'Basilan', 'Bataan', 'Batanes', 'Batangas', 'Benguet', 'Biliran', 'Bohol', 'Bukidnon', 'Bulacan', 
+  'Cagayan', 'Camarines Norte', 'Camarines Sur', 'Camiguin', 'Capiz', 'Catanduanes', 'Cavite', 
+  'Cebu', 'Cotabato', 'Davao de Oro', 'Davao del Norte', 'Davao del Sur', 'Davao Occidental', 
+  'Davao Oriental', 'Dinagat Islands', 'Eastern Samar', 'Guimaras', 'Ifugao', 'Ilocos Norte', 
+  'Ilocos Sur', 'Iloilo', 'Isabela', 'Kalinga', 'La Union', 'Laguna', 'Lanao del Norte', 
+  'Lanao del Sur', 'Leyte', 'Maguindanao del Norte', 'Maguindanao del Sur', 'Marinduque', 
+  'Masbate', 'Metro Manila', 'Misamis Occidental', 'Misamis Oriental', 'Mountain Province', 
+  'Negros Occidental', 'Negros Oriental', 'Northern Samar', 'Nueva Ecija', 'Nueva Vizcaya', 
+  'Occidental Mindoro', 'Oriental Mindoro', 'Palawan', 'Pampanga', 'Pangasinan', 'Quezon', 
+  'Quirino', 'Rizal', 'Romblon', 'Samar', 'Sarangani', 'Siquijor', 'Sorsogon', 'South Cotabato', 
+  'Southern Leyte', 'Sultan Kudarat', 'Sulu', 'Surigao del Norte', 'Surigao del Sur', 'Tarlac', 
+  'Tawi-Tawi', 'Zambales', 'Zamboanga del Norte', 'Zamboanga del Sur', 'Zamboanga Sibugay'
+];
+
+const MONTHS = [
+  { val: '1', label: 'January' }, { val: '2', label: 'February' }, { val: '3', label: 'March' },
+  { val: '4', label: 'April' }, { val: '5', label: 'May' }, { val: '6', label: 'June' },
+  { val: '7', label: 'July' }, { val: '8', label: 'August' }, { val: '9', label: 'September' },
+  { val: '10', label: 'October' }, { val: '11', label: 'November' }, { val: '12', label: 'December' }
+];
+const YEARS = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - 18 - i);
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+const formatFranchise = (val) => {
+  let clean = val.replace(/[^a-zA-Z0-9]/g, '');
+  if (clean.length > 4) {
+    clean = clean.slice(0, 4) + '-' + clean.slice(4, 10);
+  }
+  return clean.toUpperCase();
+};
+
+const formatLicense = (val) => {
+  let clean = val.replace(/[^a-zA-Z0-9]/g, '');
+  let formatted = '';
+  if (clean.length > 0) formatted += clean.substring(0, 3);
+  if (clean.length > 3) formatted += '-' + clean.substring(3, 5);
+  if (clean.length > 5) formatted += '-' + clean.substring(5, 11);
+  return formatted.toUpperCase();
+};
 
 const ATTACHMENTS = [
   { key: 'drivers_license',   label: "Driver's License",               required: true  },
@@ -52,21 +92,35 @@ export default function Register() {
   const [dupWarning, setDupWarning] = useState(null);
   const fileInputRefs = useRef({});
 
+  const [dobMonth, setDobMonth] = useState('');
+  const [dobDay, setDobDay] = useState('');
+  const [dobYear, setDobYear] = useState('');
+
+  useEffect(() => {
+    if (dobMonth && dobDay && dobYear) {
+      const formattedDate = `${dobYear}-${dobMonth.padStart(2, '0')}-${dobDay.padStart(2, '0')}`;
+      const dobDate = new Date(formattedDate);
+      const today = new Date();
+      let calculatedAge = today.getFullYear() - dobDate.getFullYear();
+      const m = today.getMonth() - dobDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) calculatedAge--;
+      
+      setForm(f => ({ ...f, date_of_birth: formattedDate, age: calculatedAge >= 0 ? calculatedAge : '' }));
+      setErrors(e => ({ ...e, date_of_birth: '', age: '' }));
+    } else {
+      setForm(f => ({ ...f, date_of_birth: '', age: '' }));
+    }
+  }, [dobMonth, dobDay, dobYear]);
+
   // ── Form field change ──────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let val = type === 'checkbox' ? checked : value;
 
-    // Auto-calc age from DOB
-    if (name === 'date_of_birth' && value) {
-      const dob  = new Date(value);
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const m = today.getMonth() - dob.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-      setForm(f => ({ ...f, date_of_birth: value, age: age > 0 ? age : '' }));
-      setErrors(e => ({ ...e, date_of_birth: '' }));
-      return;
+    if (name === 'franchise_number') {
+      val = formatFranchise(val);
+    } else if (name === 'drivers_license_number') {
+      val = formatLicense(val);
     }
 
     setForm(f => ({ ...f, [name]: val }));
@@ -88,6 +142,10 @@ export default function Register() {
     }
     if (form.age && (form.age < 18 || form.age > 120)) {
       errs.age = 'Age must be between 18 and 120.';
+    }
+
+    if (Object.keys(errs).length > 0) {
+      toast.error('Please check all fields and fix the errors.');
     }
 
     setErrors(errs);
@@ -393,14 +451,25 @@ export default function Register() {
 
             {/* Personal details */}
             <div className="form-row">
-              <div className="form-group">
+              <div className="form-group" style={{ flex: 2 }}>
                 <label className="form-label">Date of Birth <span className="required">*</span></label>
-                <input type="date" name="date_of_birth" className={`form-control ${errors.date_of_birth?'error':''}`}
-                  value={form.date_of_birth} onChange={handleChange}
-                  max={new Date().toISOString().split('T')[0]} />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <select className={`form-control ${errors.date_of_birth?'error':''}`} value={dobMonth} onChange={e => setDobMonth(e.target.value)}>
+                    <option value="">Month</option>
+                    {MONTHS.map(m => <option key={m.val} value={m.val}>{m.label}</option>)}
+                  </select>
+                  <select className={`form-control ${errors.date_of_birth?'error':''}`} value={dobDay} onChange={e => setDobDay(e.target.value)}>
+                    <option value="">Day</option>
+                    {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <select className={`form-control ${errors.date_of_birth?'error':''}`} value={dobYear} onChange={e => setDobYear(e.target.value)}>
+                    <option value="">Year</option>
+                    {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                </div>
                 {errors.date_of_birth && <div className="form-error"><AlertCircle size={13}/>{errors.date_of_birth}</div>}
               </div>
-              <div className="form-group">
+              <div className="form-group" style={{ flex: 1 }}>
                 <label className="form-label">Age <span className="required">*</span></label>
                 <input type="number" name="age" className={`form-control ${errors.age?'error':''}`}
                   value={form.age} onChange={handleChange} min="18" max="120" readOnly />
