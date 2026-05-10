@@ -4,6 +4,7 @@ export default function StatusBadge({ status }) {
     'Approved':           'badge-approved',
     'Rejected':           'badge-rejected',
     'For Resubmission':   'badge-resubmission',
+    'Resubmitted':        'badge-resubmitted',
     'Claimed':            'badge-claimed',
     'Not Yet Claimed':    'badge-not-claimed',
   };
