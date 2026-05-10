@@ -47,7 +47,7 @@ if ($method === 'POST' && ($_GET['action'] ?? '') === 'upload_logo') {
     }
 
     // Ensure directory exists
-    $uploadDir = UPLOADS_DIR . 'system/';
+    $uploadDir = UPLOAD_DIR . 'system/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
     $fileName = 'logo_' . time() . '.' . $ext;
