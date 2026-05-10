@@ -194,7 +194,29 @@ export default function AdminLayout() {
           </div>
 
           <div className="topnav-right">
-            {/* ── Bell icon with real-time badge ── */}
+            {/* ── Notification Bell ── */}
+            <button
+              className="topnav-icon-btn"
+              onClick={() => navigate('/admin/notifications')}
+              title="Notifications"
+              style={{ position: 'relative', marginRight: 4 }}
+            >
+              <Bell size={21} />
+              {badges.notif > 0 && (
+                <span style={{
+                  position: 'absolute', top: 2, right: 2,
+                  background: 'var(--danger)', color: '#fff',
+                  fontSize: '0.65rem', fontWeight: 800,
+                  minWidth: 16, height: 16, borderRadius: 8,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '2px solid #fff',
+                }}>
+                  {badges.notif > 99 ? '99+' : badges.notif}
+                </span>
+              )}
+            </button>
+
+            {/* ── Settings Dropdown ── */}
             <div ref={settingsRef} style={{ position: 'relative' }}>
               <button
                 className="topnav-icon-btn"
