@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Archive as ArchiveIcon, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { Archive as ArchiveIcon, RotateCcw, Search, Trash2, X, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api';
 import StatusBadge from '../../components/StatusBadge';
@@ -11,6 +11,10 @@ export default function Archive() {
   const [page, setPage]       = useState(1);
   const [search, setSearch]   = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Delete Confirmation State
+  const [deleteModal, setDeleteModal] = useState({ open: false, id: null, name: '' });
+  const [confirmName, setConfirmName] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -52,11 +56,17 @@ export default function Archive() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('PERMANENT DELETE: Are you sure you want to delete this application forever? This cannot be undone.')) return;
+  const openDeleteModal = (app) => {
+    const fullName = `${app.given_name} ${app.surname}`;
+    setDeleteModal({ open: true, id: app.id, name: fullName });
+    setConfirmName('');
+  };
+
+  const executeDelete = async (id) => {
     try {
       await api.delete(`/applications.php?action=delete&id=${id}`);
       toast.success('Application deleted permanently');
+      setDeleteModal({ open: false, id: null, name: '' });
       fetchArchived();
     } catch {
       toast.error('Failed to delete application');
@@ -131,7 +141,7 @@ export default function Archive() {
                         </button>
                         <button 
                           className="btn btn-ghost btn-sm" 
-                          onClick={() => handleDelete(app.id)}
+                          onClick={() => openDeleteModal(app)}
                           title="Delete permanently"
                           style={{ color: 'var(--danger)' }}
                         >
@@ -146,6 +156,73 @@ export default function Archive() {
           </div>
         )}
       </div>
+
+      {/* ── Delete Confirmation Modal ── */}
+      {deleteModal.open && (
+        <div className="modal-overlay">
+          <div className="modal modal-sm" style={{ borderTop: '5px solid var(--danger)' }}>
+            <div className="modal-header">
+              <h3 style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <AlertTriangle size={20} /> Critical Action
+              </h3>
+              <button 
+                className="btn btn-ghost btn-icon btn-sm" 
+                onClick={() => setDeleteModal({ open: false, id: null, name: '' })}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ textAlign: 'center', marginBottom: 20 }}>
+                <p style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>Confirm Permanent Deletion</p>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: 10, lineHeight: 1.5 }}>
+                  This action <strong>cannot be undone</strong>. This will permanently remove the record of 
+                  <span style={{ color: 'var(--danger)', fontWeight: 800 }}> {deleteModal.name}</span> from the system.
+                </p>
+              </div>
+
+              <div className="form-group" style={{ background: '#FDF2F2', padding: 16, borderRadius: 10, border: '1px solid #FADBD8' }}>
+                <label className="form-label" style={{ fontSize: '0.85rem', marginBottom: 10 }}>
+                  Guide: Please type the full name exactly as shown below:
+                </label>
+                <div style={{ 
+                  background: '#fff', padding: '8px 12px', borderRadius: 6, 
+                  border: '1.5px solid var(--border)', fontWeight: 800, 
+                  color: 'var(--primary)', textAlign: 'center', marginBottom: 12,
+                  fontSize: '1rem', letterSpacing: '0.5px'
+                }}>
+                  {deleteModal.name}
+                </div>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Type name here..."
+                  value={confirmName}
+                  onChange={e => setConfirmName(e.target.value)}
+                  autoFocus
+                  style={{ textAlign: 'center', fontWeight: 700 }}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-outline" 
+                onClick={() => setDeleteModal({ open: false, id: null, name: '' })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-danger" 
+                disabled={confirmName !== deleteModal.name}
+                onClick={() => executeDelete(deleteModal.id)}
+                style={{ flex: 1 }}
+              >
+                Confirm & Delete Forever
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
