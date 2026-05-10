@@ -4,7 +4,7 @@ import { Upload, CheckCircle, AlertCircle, FileText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api';
 
-const ATTACHMENTS = [
+const ALL_ATTACHMENTS = [
   { key: 'drivers_license',   label: "Driver's License",                required: true  },
   { key: 'franchise_receipt', label: "Franchise Receipt / Mayor's Permit", required: true  },
   { key: 'cedula',            label: 'Updated Cedula',                    required: true  },
@@ -15,14 +15,16 @@ const ATTACHMENTS = [
 export default function Resubmit() {
   const { ref } = useParams();
   const navigate = useNavigate();
-  const [app, setApp]         = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [files, setFiles]     = useState({});
-  const [previews, setPreviews] = useState({});
-  const [uploaded, setUploaded] = useState({});
+  const [app, setApp]             = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [files, setFiles]         = useState({});
+  const [previews, setPreviews]   = useState({});
+  const [uploaded, setUploaded]   = useState({});
   const [uploading, setUploading] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone]       = useState(false);
+  const [done, setDone]           = useState(false);
+  // Only the docs the admin flagged as needing resubmission
+  const [needsUpload, setNeedsUpload] = useState([]);
 
   useEffect(() => {
     api.get('/applications.php?action=track', { params: { ref } })
@@ -34,6 +36,30 @@ export default function Resubmit() {
             navigate('/track');
           }
           setApp(a);
+
+          // Determine which docs need re-uploading:
+          // If admin marked specific attachments as Missing/Invalid, only show those.
+          // Otherwise show all (fallback for older apps without attachment status).
+          const existingAtts = a.attachments || [];
+          const badStatuses  = ['Missing', 'Invalid', 'Pending'];
+
+          // Build a map: key -> status
+          const attStatusMap = {};
+          existingAtts.forEach(att => {
+            attStatusMap[att.attachment_type] = att.status;
+          });
+
+          // A doc needs upload if:
+          //   1. It was explicitly marked Missing or Invalid by the admin, OR
+          //   2. It was never uploaded (not in attStatusMap at all)
+          // It does NOT need upload if it's already 'Complete'.
+          const toUpload = ALL_ATTACHMENTS.filter(att => {
+            const st = attStatusMap[att.key];
+            if (st === 'Complete') return false;   // already approved, skip
+            return true;                            // needs re-upload
+          });
+
+          setNeedsUpload(toUpload.length > 0 ? toUpload : ALL_ATTACHMENTS);
         } else {
           toast.error('Application not found.');
           navigate('/track');
@@ -140,8 +166,18 @@ export default function Resubmit() {
             </div>
           )}
 
+          {needsUpload.length < ALL_ATTACHMENTS.length && (
+            <div className="alert alert-success" style={{ marginBottom: 16 }}>
+              <CheckCircle size={16} />
+              <div>
+                <strong>Good news!</strong> Some documents are already complete.
+                Only the documents below need to be re-uploaded.
+              </div>
+            </div>
+          )}
+
           <div className="attachment-grid" style={{ display: 'grid', gap: 14 }}>
-            {ATTACHMENTS.map(att => (
+            {needsUpload.map(att => (
               <div key={att.key} className="attachment-item">
                 <div className="attachment-label">
                   <h4><FileText size={16} color="var(--primary)" />{att.label}</h4>
@@ -155,7 +191,7 @@ export default function Resubmit() {
                       style={{ display: 'none' }}
                       onChange={e => handleFile(att.key, e.target.files[0])} />
                     <div className="upload-icon"><Upload size={24} /></div>
-                    <p>Click to upload</p>
+                    <p>Tap to upload</p>
                     <div className="upload-hint">JPG, PNG, WEBP, PDF · Max 5MB</div>
                   </label>
                 ) : (
@@ -165,15 +201,22 @@ export default function Resubmit() {
                       : <img src={previews[att.key]} alt="preview" />
                     }
                     <div className="upload-preview-info">
-                      <div className="file-name">{files[att.key].name}</div>
-                      {uploading[att.key] && <div style={{ fontSize:'0.78rem', color:'var(--primary)' }}>Uploading...</div>}
-                      {uploaded[att.key] && <div style={{ fontSize:'0.78rem', color:'var(--success)', fontWeight:600 }}>✓ Uploaded</div>}
+                      {uploading[att.key]
+                        ? <div style={{ fontSize:'0.82rem', color:'var(--primary)', fontWeight:600 }}>Uploading...</div>
+                        : <div style={{ fontSize:'0.82rem', color:'var(--success)', fontWeight:600 }}>✓ Uploaded</div>
+                      }
                     </div>
-                    <button className="btn btn-ghost btn-icon" onClick={() => {
-                      setFiles(f => { const c={...f}; delete c[att.key]; return c; });
-                      setPreviews(p => { const c={...p}; delete c[att.key]; return c; });
-                      setUploaded(u => { const c={...u}; delete c[att.key]; return c; });
-                    }}><X size={16} /></button>
+                    <button
+                      className="upload-remove-btn"
+                      onClick={() => {
+                        setFiles(f => { const c={...f}; delete c[att.key]; return c; });
+                        setPreviews(p => { const c={...p}; delete c[att.key]; return c; });
+                        setUploaded(u => { const c={...u}; delete c[att.key]; return c; });
+                      }}
+                      title="Remove"
+                    >
+                      <X size={18} />
+                    </button>
                   </div>
                 )}
               </div>
@@ -184,7 +227,7 @@ export default function Resubmit() {
             className="btn btn-primary btn-block btn-lg"
             style={{ marginTop: 24 }}
             onClick={handleSubmit}
-            disabled={submitting || Object.keys(uploaded).length === 0}
+            disabled={submitting || needsUpload.filter(a => a.required).some(a => !uploaded[a.key])}
           >
             {submitting ? <><div className="spinner-sm" /> Submitting...</> : 'Submit Resubmission'}
           </button>

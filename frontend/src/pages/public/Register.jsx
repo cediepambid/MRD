@@ -730,19 +730,18 @@ function AttachmentUploader({ att, file, preview, uploadedInfo, uploading, refNu
           ) : preview ? (
             <img src={preview} alt="preview" />
           ) : null}
-          <div className="upload-preview-info" style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="upload-preview-info">
             {uploading ? (
-              <div style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>Uploading...</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--primary)', fontWeight: 600 }}>Uploading...</div>
             ) : (
-              <div style={{ fontSize: '0.9rem', color: 'var(--success)', fontWeight: 600 }}>✓ Attached</div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--success)', fontWeight: 600 }}>✓ Attached</div>
             )}
           </div>
-          <button 
-            className="btn btn-ghost btn-icon" 
-            onClick={onRemove} 
-            title="Remove" 
+          <button
+            className="upload-remove-btn"
+            onClick={onRemove}
+            title="Remove"
             disabled={uploading}
-            style={{ flexShrink: 0, color: 'var(--danger)', background: 'rgba(231, 76, 60, 0.1)' }}
           >
             <X size={18} />
           </button>
