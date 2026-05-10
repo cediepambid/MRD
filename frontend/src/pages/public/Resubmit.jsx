@@ -49,17 +49,15 @@ export default function Resubmit() {
             attStatusMap[att.attachment_type] = att.status;
           });
 
-          // A doc needs upload if:
-          //   1. It was explicitly marked Missing or Invalid by the admin, OR
-          //   2. It was never uploaded (not in attStatusMap at all)
-          // It does NOT need upload if it's already 'Complete'.
+          // A doc needs upload if it's Missing, Invalid, or never uploaded.
+          // It does NOT need upload if it's 'Complete' or 'Pending'.
           const toUpload = ALL_ATTACHMENTS.filter(att => {
             const st = attStatusMap[att.key];
-            if (st === 'Complete') return false;   // already approved, skip
-            return true;                            // needs re-upload
+            if (st === 'Complete' || st === 'Pending') return false;
+            return true;
           });
 
-          setNeedsUpload(toUpload.length > 0 ? toUpload : ALL_ATTACHMENTS);
+          setNeedsUpload(toUpload);
         } else {
           toast.error('Application not found.');
           navigate('/track');
@@ -227,7 +225,7 @@ export default function Resubmit() {
             className="btn btn-primary btn-block btn-lg"
             style={{ marginTop: 24 }}
             onClick={handleSubmit}
-            disabled={submitting || needsUpload.filter(a => a.required).some(a => !uploaded[a.key])}
+            disabled={submitting || needsUpload.some(a => a.required && !uploaded[a.key])}
           >
             {submitting ? <><div className="spinner-sm" /> Submitting...</> : 'Submit Resubmission'}
           </button>
