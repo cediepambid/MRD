@@ -146,7 +146,7 @@ if ($method === 'GET' && $action === 'track') {
     }
 
     // Get attachments
-    $attStmt = $db->prepare("SELECT attachment_type, file_name, status FROM application_attachments WHERE application_id = ?");
+    $attStmt = $db->prepare("SELECT attachment_type, file_name, file_path, status FROM application_attachments WHERE application_id = ?");
     $attStmt->execute([$app['id']]);
     $attachments = $attStmt->fetchAll();
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Upload, CheckCircle, AlertCircle, FileText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../../api';
+import api, { getFileUrl } from '../../api';
 
 const ALL_ATTACHMENTS = [
   { key: 'drivers_license',   label: "Driver's License",                required: true  },
@@ -37,27 +37,35 @@ export default function Resubmit() {
           }
           setApp(a);
 
-          // Determine which docs need re-uploading:
-          // If admin marked specific attachments as Missing/Invalid, only show those.
-          // Otherwise show all (fallback for older apps without attachment status).
+          // Determine which docs need to be shown:
+          // Skip 'Complete' docs. Show 'Pending', 'Missing', 'Invalid', or never uploaded.
           const existingAtts = a.attachments || [];
-          const badStatuses  = ['Missing', 'Invalid', 'Pending'];
-
-          // Build a map: key -> status
           const attStatusMap = {};
+          const initialFiles = {};
+          const initialPreviews = {};
+          const initialUploaded = {};
+
           existingAtts.forEach(att => {
             attStatusMap[att.attachment_type] = att.status;
+            if (att.status === 'Pending') {
+              initialFiles[att.attachment_type] = { name: att.file_name, isExisting: true };
+              initialUploaded[att.attachment_type] = true;
+              
+              const isImg = /\.(jpg|jpeg|png|webp)$/i.test(att.file_path);
+              initialPreviews[att.attachment_type] = isImg ? getFileUrl(att.file_path) : 'pdf';
+            }
           });
 
-          // A doc needs upload if it's Missing, Invalid, or never uploaded.
-          // It does NOT need upload if it's 'Complete' or 'Pending'.
-          const toUpload = ALL_ATTACHMENTS.filter(att => {
+          const toShow = ALL_ATTACHMENTS.filter(att => {
             const st = attStatusMap[att.key];
-            if (st === 'Complete' || st === 'Pending') return false;
+            if (st === 'Complete') return false; 
             return true;
           });
 
-          setNeedsUpload(toUpload);
+          setNeedsUpload(toShow);
+          setFiles(initialFiles);
+          setPreviews(initialPreviews);
+          setUploaded(initialUploaded);
         } else {
           toast.error('Application not found.');
           navigate('/track');
