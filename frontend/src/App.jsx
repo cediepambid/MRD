@@ -25,6 +25,7 @@ const NotYetClaimed  = lazy(() => import('./pages/admin/NotYetClaimed'));
 const Reports        = lazy(() => import('./pages/admin/Reports'));
 const QRCode         = lazy(() => import('./pages/admin/QRCode'));
 const Notifications  = lazy(() => import('./pages/admin/Notifications'));
+const Archive      = lazy(() => import('./pages/admin/Archive'));
 const Users          = lazy(() => import('./pages/admin/Users'));
 const Settings       = lazy(() => import('./pages/admin/Settings'));
 
@@ -83,6 +84,7 @@ function AppRoutes() {
           <Route path="reports"         element={<Reports />} />
           <Route path="qr-code"         element={<QRCode />} />
           <Route path="notifications"   element={<Notifications />} />
+          <Route path="archive"         element={<Archive />} />
           <Route path="users"           element={<Users />} />
           <Route path="settings"        element={<Settings />} />
         </Route>

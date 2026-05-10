@@ -39,6 +39,7 @@ const NAV = [
 const SETTINGS_ITEMS = [
   { to: '/admin/reports',       icon: BarChart2, label: 'Reports' },
   { to: '/admin/qr-code',       icon: QrCode,    label: 'QR Code' },
+  { to: '/admin/archive',       icon: Archive,   label: 'Archive' },
   { to: '/admin/users',         icon: UserCog,   label: 'Users',           roles: ['admin'] },
   { to: '/admin/settings',      icon: Settings,  label: 'System Settings', roles: ['admin'] },
 ];

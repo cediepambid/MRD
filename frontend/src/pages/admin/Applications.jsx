@@ -66,7 +66,7 @@ export default function Applications() {
   };
 
   const handleArchive = async (id) => {
-    if (!window.confirm('Are you sure you want to archive this application? It will be moved to the Archive list in Settings.')) return;
+    if (!window.confirm('Are you sure you want to archive this application? It will be moved to the separate Archive page.')) return;
     try {
       await api.post(`/applications.php?action=archive&id=${id}`);
       toast.success('Application archived');
