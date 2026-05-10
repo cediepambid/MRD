@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS applications (
     franchise_number VARCHAR(80) DEFAULT NULL,
     drivers_license_number VARCHAR(80) DEFAULT NULL,
     -- Status
-    status ENUM('Pending','Approved','Rejected','For Resubmission') DEFAULT 'Pending',
+    status ENUM('Pending','Approved','Rejected','For Resubmission','Resubmitted') DEFAULT 'Pending',
     rejection_reason TEXT DEFAULT NULL,
     resubmission_reason TEXT DEFAULT NULL,
     -- Review metadata
