@@ -83,9 +83,9 @@ export default function Settings() {
           <label className="form-label">System Logo</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             {settings.system_logo ? (
-              <img src={getFileUrl(settings.system_logo)} alt="Logo" style={{ width: 64, height: 64, objectFit: 'contain', borderRadius: 8, background: '#f8f9fa', padding: 4, border: '1px solid var(--border)' }} />
+              <img src={getFileUrl(settings.system_logo)} alt="Logo" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '50%', background: '#f8f9fa', padding: 4, border: '1px solid var(--border)' }} />
             ) : (
-              <div style={{ width: 64, height: 64, borderRadius: 8, background: '#f8f9fa', border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🍚</div>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f8f9fa', border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🍚</div>
             )}
             <div style={{ flex: 1 }}>
               <input 

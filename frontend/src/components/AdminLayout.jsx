@@ -134,7 +134,7 @@ export default function AdminLayout() {
         <div className="sidebar-logo">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             {sysSettings.system_logo ? (
-              <img src={getFileUrl(sysSettings.system_logo)} alt="logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+              <img src={getFileUrl(sysSettings.system_logo)} alt="logo" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: '50%' }} />
             ) : (
               <span style={{ fontSize: '1.5rem' }}>🍚</span>
             )}
