@@ -199,25 +199,25 @@ if ($method === 'POST' && $action === 'resubmit') {
         jsonResponse(['error' => 'This application is not eligible for resubmission.'], 400);
     }
 
-    // Use a distinct status so Pending Reviews queue is not polluted
+    // Update status to Resubmitted
     $db->prepare("UPDATE applications SET status = 'Resubmitted', updated_at = NOW() WHERE id = ?")
        ->execute([$app['id']]);
 
-    // Notify admins with a detailed message
+    // Notify admins
     $admins = $db->query("SELECT id FROM users WHERE role IN ('admin') AND is_active = 1")->fetchAll();
     foreach ($admins as $adm) {
         createNotification(
             $db, $adm['id'], 'resubmission',
-            '📋 Documents Resubmitted',
-            "Application $ref — the applicant has re-uploaded their required documents and is awaiting re-review.",
+            'Requirements Updated',
+            "Requirements have been updated for Application $ref. Applicant has resubmitted the missing/invalid documents.",
             $ref
         );
     }
 
     logActivity($db, null, 'Applicant', 'resubmit_application', $ref, $app['id'],
-        $app['status'], 'Resubmitted', 'Applicant resubmitted documents');
+        $app['status'], 'Resubmitted', 'Requirements have been updated and resubmitted');
 
-    jsonResponse(['success' => true, 'message' => 'Your documents have been resubmitted. Your application is now under review.']);
+    jsonResponse(['success' => true, 'message' => 'Your requirements have been updated and resubmitted. Please wait for admin review.']);
 }
 
 // ============================================================
@@ -261,12 +261,6 @@ if ($method === 'GET' && $action === 'list') {
     $off   = ($page - 1) * $limit;
     $sort  = in_array($_GET['sort'] ?? '', ['submitted_at','surname','status']) ? $_GET['sort'] : 'submitted_at';
     $dir   = ($_GET['dir'] ?? 'desc') === 'asc' ? 'ASC' : 'DESC';
-
-    // Allow filtering by valid statuses (including Resubmitted)
-    $validStatuses = ['Pending','Approved','Rejected','For Resubmission','Resubmitted'];
-    if (!empty($_GET['status']) && !in_array($_GET['status'], $validStatuses)) {
-        $where[] = '1=0'; // block invalid status injection
-    }
 
     $whereStr = implode(' AND ', $where);
 

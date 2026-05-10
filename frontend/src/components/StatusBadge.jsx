@@ -3,8 +3,8 @@ export default function StatusBadge({ status }) {
     'Pending':            'badge-pending',
     'Approved':           'badge-approved',
     'Rejected':           'badge-rejected',
-    'For Resubmission':   'badge-resubmission',
     'Resubmitted':        'badge-resubmitted',
+    'For Resubmission':   'badge-resubmission',
     'Claimed':            'badge-claimed',
     'Not Yet Claimed':    'badge-not-claimed',
   };

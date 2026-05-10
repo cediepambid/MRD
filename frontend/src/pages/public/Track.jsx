@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api';
 
 const STATUS_CONFIG = {
-  Pending:             { icon: Clock,        color: '#9A7D0A', bg: '#FEF9E7', label: 'Pending Review',      desc: 'Your application is being reviewed by the admin.' },
-  Resubmitted:         { icon: RefreshCw,    color: '#2471A3', bg: '#EBF5FB', label: 'Documents Submitted',  desc: 'Your re-uploaded documents were received and are being reviewed.' },
-  Approved:            { icon: CheckCircle,  color: '#1E8449', bg: '#EAFAF1', label: 'Approved',             desc: 'Congratulations! Your application has been approved.' },
-  Rejected:            { icon: XCircle,      color: '#C0392B', bg: '#FDEDEC', label: 'Rejected',             desc: 'Your application has been rejected.' },
-  'For Resubmission':  { icon: RefreshCw,    color: '#CA6F1E', bg: '#FDF2E9', label: 'For Resubmission',    desc: 'Please re-upload the required documents.' },
+  Pending:          { icon: Clock,        color: '#9A7D0A', bg: '#FEF9E7', label: 'Pending Review',     desc: 'Your application is being reviewed by the admin.' },
+  Approved:         { icon: CheckCircle,  color: '#1E8449', bg: '#EAFAF1', label: 'Approved',            desc: 'Congratulations! Your application has been approved.' },
+  Rejected:         { icon: XCircle,      color: '#C0392B', bg: '#FDEDEC', label: 'Rejected',            desc: 'Your application has been rejected.' },
+  'For Resubmission':{ icon: RefreshCw,   color: '#CA6F1E', bg: '#FDF2E9', label: 'For Resubmission',   desc: 'Please re-upload the required documents.' },
+  Resubmitted:      { icon: RefreshCw,    color: '#1A5276', bg: '#EBF5FB', label: 'Resubmitted',        desc: 'Requirements have been updated. Please wait for admin review.' },
 };
 
 const CLAIM_CONFIG = {
@@ -143,7 +143,7 @@ export default function Track() {
                 </div>
               )}
 
-              {/* Resubmission needed */}
+              {/* Resubmission */}
               {result.status === 'For Resubmission' && (
                 <div className="alert alert-warning" style={{ flexDirection: 'column', gap: 10 }}>
                   <div style={{ display: 'flex', gap: 10 }}>
@@ -159,26 +159,6 @@ export default function Track() {
                   >
                     <RefreshCw size={14} /> Upload Missing Documents
                   </button>
-                </div>
-              )}
-
-              {/* Resubmitted — documents received banner */}
-              {result.status === 'Resubmitted' && (
-                <div style={{
-                  background: '#EBF5FB', border: '1.5px solid #85C1E9',
-                  borderRadius: 10, padding: '14px 18px', marginBottom: 16,
-                  display: 'flex', alignItems: 'flex-start', gap: 12
-                }}>
-                  <CheckCircle size={22} color="#2471A3" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <div>
-                    <div style={{ fontWeight: 700, color: '#2471A3', marginBottom: 4 }}>
-                      ✅ Documents Received — Under Re-Review
-                    </div>
-                    <div style={{ fontSize: '0.87rem', color: '#1A5276' }}>
-                      Your re-uploaded documents have been received by the admin.
-                      Please wait while we review them. You will be notified of the result.
-                    </div>
-                  </div>
                 </div>
               )}
 

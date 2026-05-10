@@ -426,6 +426,7 @@ p  { font-size: 1rem; }
 .badge-approved     { background: #EAFAF1; color: #1E8449; border: 1px solid #82E0AA; }
 .badge-rejected     { background: #FDEDEC; color: #C0392B; border: 1px solid #F1948A; }
 .badge-resubmission { background: #FDF2E9; color: #CA6F1E; border: 1px solid #FAD7A0; }
+.badge-resubmitted  { background: #EBF5FB; color: #1A5276; border: 1px solid #AED6F1; }
 .badge-claimed      { background: #EBF5FB; color: #2471A3; border: 1px solid #85C1E9; }
 .badge-not-claimed  { background: #F2F3F4; color: #566573; border: 1px solid #AAB7B8; }
 

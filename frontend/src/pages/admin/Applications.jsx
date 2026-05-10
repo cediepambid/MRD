@@ -5,7 +5,7 @@ import api from '../../api';
 import StatusBadge from '../../components/StatusBadge';
 import ApplicationModal from '../../components/ApplicationModal';
 
-const STATUSES = ['','Pending','Resubmitted','Approved','Rejected','For Resubmission'];
+const STATUSES = ['','Pending','Approved','Rejected','For Resubmission'];
 
 export default function Applications() {
   const navigate = useNavigate();

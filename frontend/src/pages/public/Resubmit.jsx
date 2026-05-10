@@ -130,9 +130,9 @@ export default function Resubmit() {
       <div className="public-card" style={{ maxWidth: 500, margin: '0 auto' }}>
         <div className="success-screen">
           <div className="success-icon"><CheckCircle size={44} /></div>
-          <h2 style={{ color: 'var(--success)' }}>Documents Resubmitted!</h2>
+          <h2 style={{ color: 'var(--success)' }}>Requirements Updated!</h2>
           <p style={{ color: 'var(--text-muted)', margin: '12px auto 24px', maxWidth: 340 }}>
-            Your documents have been resubmitted. Your application is now pending review again.
+            Your missing/invalid documents have been resubmitted. Your application is now for review again.
           </p>
           <div className="ref-number-box">
             <div className="label">Reference Number</div>
