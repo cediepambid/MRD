@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS applications (
     approved_at DATETIME DEFAULT NULL,
     -- Certification
     is_certified TINYINT(1) DEFAULT 0,
+    is_archived TINYINT(1) DEFAULT 0,
     -- Tracking
     ip_address VARCHAR(45) DEFAULT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

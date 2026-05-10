@@ -8,7 +8,7 @@ USE mrd_db;
 
 -- Add user_agent column (tracks browser/device of applicant)
 ALTER TABLE applications
-    ADD COLUMN IF NOT EXISTS user_agent VARCHAR(500) DEFAULT NULL AFTER ip_address;
+    ADD COLUMN user_agent VARCHAR(500) DEFAULT NULL AFTER ip_address;
 
 -- Add LAN/network settings
 INSERT INTO settings (`key`, value) VALUES

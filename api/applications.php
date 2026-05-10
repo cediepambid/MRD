@@ -230,6 +230,11 @@ if ($method === 'GET' && $action === 'list') {
     $where  = ['1=1'];
     $params = [];
 
+    // Filter by archived status
+    $archived = isset($_GET['archived']) ? (int)$_GET['archived'] : 0;
+    $where[]  = 'a.is_archived = ?';
+    $params[] = $archived;
+
     if (!empty($_GET['status'])) {
         $where[]  = 'a.status = ?';
         $params[] = $_GET['status'];
@@ -445,6 +450,38 @@ if ($method === 'PUT' && $action === 'update_attachment') {
        ->execute([$status, $attId]);
 
     jsonResponse(['success' => true]);
+}
+
+// ============================================================
+// ADMIN: POST /api/applications.php?action=archive&id=1
+// ============================================================
+if ($method === 'POST' && $action === 'archive') {
+    $auth = roleGuard(['admin']);
+    $id   = (int)($_GET['id'] ?? 0);
+    if (!$id) jsonResponse(['error' => 'Application ID required.'], 400);
+
+    $db = getDB();
+    $db->prepare("UPDATE applications SET is_archived = 1 WHERE id = ?")->execute([$id]);
+
+    logActivity($db, $auth['id'], $auth['name'], 'archive_application', null, $id, null, null, 'Application archived');
+
+    jsonResponse(['success' => true, 'message' => 'Application archived.']);
+}
+
+// ============================================================
+// ADMIN: POST /api/applications.php?action=unarchive&id=1
+// ============================================================
+if ($method === 'POST' && $action === 'unarchive') {
+    $auth = roleGuard(['admin']);
+    $id   = (int)($_GET['id'] ?? 0);
+    if (!$id) jsonResponse(['error' => 'Application ID required.'], 400);
+
+    $db = getDB();
+    $db->prepare("UPDATE applications SET is_archived = 0 WHERE id = ?")->execute([$id]);
+
+    logActivity($db, $auth['id'], $auth['name'], 'unarchive_application', null, $id, null, null, 'Application unarchived');
+
+    jsonResponse(['success' => true, 'message' => 'Application restored from archive.']);
 }
 
 // ============================================================

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Eye, Filter } from 'lucide-react';
+import { Search, Eye, Filter, Archive } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../../api';
 import StatusBadge from '../../components/StatusBadge';
 import ApplicationModal from '../../components/ApplicationModal';
@@ -41,7 +42,8 @@ export default function Applications() {
       limit: 20, 
       search: debouncedSearch, 
       status, 
-      barangay: debouncedBarangay 
+      barangay: debouncedBarangay,
+      archived: 0
     };
     api.get('/applications.php?action=list', { params: p })
       .then(res => {
@@ -61,6 +63,17 @@ export default function Applications() {
     setDebouncedBarangay(barangay);
     setPage(1);
     fetchApps();
+  };
+
+  const handleArchive = async (id) => {
+    if (!window.confirm('Are you sure you want to archive this application? It will be moved to the Archive list in Settings.')) return;
+    try {
+      await api.post(`/applications.php?action=archive&id=${id}`);
+      toast.success('Application archived');
+      fetchApps();
+    } catch {
+      toast.error('Failed to archive application');
+    }
   };
 
   return (
@@ -155,12 +168,23 @@ export default function Applications() {
                         {new Date(app.submitted_at).toLocaleDateString('en-PH')}
                       </td>
                       <td>
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() => setSelectedId(app.id)}
-                        >
-                          <Eye size={14} /> View
-                        </button>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            className="btn btn-primary btn-sm"
+                            onClick={() => setSelectedId(app.id)}
+                            title="View Details"
+                          >
+                            <Eye size={14} /> View
+                          </button>
+                          <button
+                            className="btn btn-outline btn-sm"
+                            onClick={() => handleArchive(app.id)}
+                            title="Archive Application"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
+                            <Archive size={14} /> Archive
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
