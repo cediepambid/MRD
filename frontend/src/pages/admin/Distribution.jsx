@@ -12,7 +12,6 @@ export default function Distribution() {
   const [barangay, setBarangay] = useState('');
   const [page, setPage]         = useState(1);
   const [claimModal, setClaimModal] = useState(null); // { id, name }
-  const [remarks, setRemarks]   = useState('');
   const [processing, setProcessing] = useState(false);
 
   const fetch = useCallback(() => {
@@ -30,13 +29,12 @@ export default function Distribution() {
   const handleMarkClaimed = async () => {
     setProcessing(true);
     try {
-      const res = await api.post(`/beneficiaries.php?action=mark_claimed&id=${claimModal.id}`, { remarks });
+      const res = await api.post(`/beneficiaries.php?action=mark_claimed&id=${claimModal.id}`);
       if (res.data.warning) {
         toast.error(res.data.message);
       } else {
         toast.success(res.data.message);
         setClaimModal(null);
-        setRemarks('');
         fetch();
       }
     } catch (err) {
@@ -140,15 +138,9 @@ export default function Distribution() {
                   Marking <strong>{claimModal.name}</strong> as having received their monthly rice assistance.
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Remarks (Optional)</label>
-                <textarea className="form-control" rows={2}
-                  placeholder="e.g. Released at Barangay Hall, March 2026"
-                  value={remarks} onChange={e => setRemarks(e.target.value)} />
-              </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => { setClaimModal(null); setRemarks(''); }}>
+              <button className="btn btn-outline" onClick={() => { setClaimModal(null); }}>
                 Cancel
               </button>
               <button className="btn btn-success" onClick={handleMarkClaimed} disabled={processing}>

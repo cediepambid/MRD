@@ -73,7 +73,6 @@ export default function ClaimedList() {
                   <th>TODA Name</th>
                   <th>Date Claimed</th>
                   <th>Released By</th>
-                  <th>Remarks</th>
                 </tr>
               </thead>
               <tbody>
@@ -85,7 +84,6 @@ export default function ClaimedList() {
                     <td>{b.toda_name || '—'}</td>
                     <td>{b.claimed_at ? new Date(b.claimed_at).toLocaleDateString('en-PH') : '—'}</td>
                     <td>{b.released_by_name || '—'}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{b.release_remarks || '—'}</td>
                   </tr>
                 ))}
               </tbody>
