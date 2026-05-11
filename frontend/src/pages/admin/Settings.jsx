@@ -9,7 +9,6 @@ const FIELDS = [
   { key: 'system_subtitle',  label: 'System Subtitle',    placeholder: 'e.g. Tricycle Franchise Holders / TODA Members' },
   { key: 'lgu_name',         label: 'LGU Name',           placeholder: 'e.g. City of Manila – PESO Office' },
   { key: 'reg_url',          label: 'Registration URL',   placeholder: 'e.g. https://example.com/#/register' },
-  { key: 'max_file_size_mb', label: 'Max File Size (MB)', placeholder: '5', type: 'number' },
 ];
 
 export default function Settings() {
@@ -88,28 +87,38 @@ export default function Settings() {
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f8f9fa', border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem' }}>🍚</div>
             )}
             <div style={{ flex: 1 }}>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={async (e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  const formData = new FormData();
-                  formData.append('logo', file);
-                  const loadingToast = toast.loading('Uploading logo...');
-                  try {
-                    const res = await api.post('/settings.php?action=upload_logo', formData, {
-                      headers: { 'Content-Type': 'multipart/form-data' }
-                    });
-                    setSettings(s => ({ ...s, system_logo: res.data.logo_url }));
-                    toast.success('Logo uploaded successfully!', { id: loadingToast });
-                  } catch (err) {
-                    toast.error(err.response?.data?.error || 'Failed to upload logo', { id: loadingToast });
-                  }
-                }}
-                style={{ fontSize: '0.85rem' }}
-              />
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: 4 }}>Recommended: Square PNG or SVG (max 2MB)</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <label className="btn btn-outline btn-sm" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8, margin: 0 }}>
+                  <RefreshCw size={14} /> Choose Image
+                  <input 
+                    type="file" 
+                    accept="image/png, image/jpeg, image/jpg, image/svg+xml, image/webp" 
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const formData = new FormData();
+                      formData.append('logo', file);
+                      const loadingToast = toast.loading('Uploading logo...');
+                      try {
+                        const res = await api.post('/settings.php?action=upload_logo', formData, {
+                          headers: { 'Content-Type': 'multipart/form-data' }
+                        });
+                        setSettings(s => ({ ...s, system_logo: res.data.logo_url }));
+                        toast.success('Logo uploaded successfully!', { id: loadingToast });
+                      } catch (err) {
+                        toast.error(err.response?.data?.error || 'Failed to upload logo', { id: loadingToast });
+                      }
+                    }}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  {settings.system_logo ? 'Logo updated' : 'No logo chosen'}
+                </span>
+              </div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: 8 }}>
+                Recommended: Square PNG or SVG (max 2MB)
+              </p>
             </div>
           </div>
         </div>
